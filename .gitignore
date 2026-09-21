@@ -1,0 +1,6 @@
+.env.local
+.env.keys
+.local-logs/
+node_modules
+dist
+src/convex/_generated

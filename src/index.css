@@ -1,0 +1,319 @@
+/* DO NOT CHANGE */
+@import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:is(.dark *));
+
+/* DO NOT CHANGE */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* CHANGE VALUES FOR THEME — SumenepKerja: crisp modern product polish,
+   brand blue #2563EB, WhatsApp green reserved for chat actions only. */
+:root {
+  --radius: 0.75rem;
+  --background: oklch(0.967 0.001 286.375);      /* gray-100 */
+  --foreground: oklch(0.208 0.042 265.755);      /* gray-900 */
+  --card: oklch(1 0 0);                          /* pure white elevation */
+  --card-foreground: oklch(0.208 0.042 265.755);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.208 0.042 265.755);
+  --primary: oklch(0.546 0.245 262.881);         /* blue-600 #2563EB */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.961 0.004 286.32);        /* gray-100 */
+  --secondary-foreground: oklch(0.372 0.044 257.287); /* gray-700 */
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.554 0.046 257.417); /* gray-600 — still readable */
+  --accent: oklch(0.951 0.023 258.442);          /* blue-50 */
+  --accent-foreground: oklch(0.546 0.245 262.881);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.929 0.013 255.508);          /* gray-200 */
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.623 0.214 259.815);            /* blue-500 */
+  --chart-1: oklch(0.623 0.214 259.815);
+  --chart-2: oklch(0.723 0.219 149.579);
+  --chart-3: oklch(0.705 0.213 47.604);
+  --chart-4: oklch(0.627 0.194 149.214);
+  --chart-5: oklch(0.554 0.046 257.417);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-primary: oklch(0.546 0.245 262.881);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.951 0.023 258.442);
+  --sidebar-accent-foreground: oklch(0.546 0.245 262.881);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.623 0.214 259.815);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
+    /* Latar solid sampai ke akar: area overscroll/rubber-band iOS tidak pernah
+       memperlihatkan celah putih di tepi atas/bawah layar. */
+    background-color: var(--background);
+    min-height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-size: 16px;
+    min-height: 100%;
+  }
+  button:not([disabled]),
+  [role="button"]:not([disabled]) {
+    cursor: pointer;
+  }
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility pb-safe-nav {
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+}
+
+/* Tinggi layar penuh dengan rantai fallback: browser paling lama pun (iOS <= 15.3,
+   Chrome < 108) tetap mendapat satu deklarasi yang valid — dulu 100vh, lalu 100svh,
+   terakhir 100dvh untuk menangani URL bar dinamis di Safari/Chrome mobile. */
+@utility min-h-app {
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+}
+
+/* Halaman sticker QR: saat mencetak, sembunyikan UI aplikasi dan tampilkan
+   hanya sheet sticker siap potong — dipakai bersama window.print() dari /qr. */
+@media print {
+  body {
+    background: white !important;
+  }
+  body.print-sticker .no-print {
+    display: none !important;
+  }
+  /* Header logo & bottom nav tidak ikut tercetak (nav fixed akan muncul
+     di setiap halaman cetak bila tidak disembunyikan). */
+  body.print-sticker header,
+  body.print-sticker nav {
+    display: none !important;
+  }
+  /* Lepas batasan shell (max-w-md, min-height, padding nav, bayangan,
+     latar abu-abu) agar sheet sticker memakai lebar kertas penuh. */
+  body.print-sticker .min-h-app {
+    min-height: 0 !important;
+    background: white !important;
+  }
+  body.print-sticker .max-w-md {
+    max-width: none !important;
+    padding-bottom: 0 !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+  body.print-sticker .sticker-sheet {
+    /* Grid 2 kolom: dua sticker 320px muat sebaris di kertas A4 (±794px). */
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    gap: 8px;
+    position: static !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body.print-sticker .sticker-sheet .sticker {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin: 0;
+    /* Pertahankan warna border & tombol hijau saat dicetak. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* =====================================================================
+ * ADMIN WORKSPACE — Warm Brutalism (terisolasi).
+ * Seluruh selektor di bawah dibungkus `.admin-workspace` sehingga halaman
+ * dan komponen publik TIDAK terpengaruh. Jangan pindahkan token ini ke :root.
+ * ===================================================================== */
+.admin-workspace {
+  --adm-paper: #faf7ee;
+  --adm-panel: #fdfbf7;
+  --adm-ink: #121212;
+  --adm-espresso: #1a1a1a;
+  --adm-muted: #525252;
+  --adm-accent: #ff5a26;
+  --adm-pending: #ffe662;
+  background-color: var(--adm-paper);
+  color: var(--adm-espresso);
+}
+
+/* Panel / kartu: border tebal + hard shadow tanpa blur. */
+.admin-workspace .adm-panel {
+  background: var(--adm-panel);
+  border: 2px solid var(--adm-ink);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 0 var(--adm-ink);
+}
+
+.admin-workspace .adm-panel-flat {
+  background: var(--adm-panel);
+  border: 2px solid var(--adm-ink);
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 0 var(--adm-ink);
+}
+
+/* Tombol fisik: ada efek tekan (geser 2px + bayangan hilang). */
+.admin-workspace .adm-btn {
+  border: 2px solid var(--adm-ink);
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 0 var(--adm-ink);
+  transition: all 75ms ease;
+}
+.admin-workspace .adm-btn:active {
+  translate: 2px 2px;
+  box-shadow: none;
+}
+
+.admin-workspace .adm-btn-primary {
+  background: var(--adm-accent);
+  color: var(--adm-ink);
+}
+
+.admin-workspace .adm-btn-dark {
+  background: var(--adm-ink);
+  color: var(--adm-paper);
+}
+
+.admin-workspace .adm-btn-ghost {
+  background: #ffffff;
+  color: var(--adm-espresso);
+}
+
+/* Input tegas: fokus garis keras, tanpa ring blur. */
+.admin-workspace .adm-input {
+  border: 2px solid var(--adm-ink);
+  border-radius: 4px;
+  background: #ffffff;
+  color: var(--adm-espresso);
+}
+.admin-workspace .adm-input:focus {
+  outline: 2px solid var(--adm-ink);
+  outline-offset: 1px;
+  box-shadow: 2px 2px 0 0 var(--adm-ink);
+}
+.admin-workspace .adm-input::placeholder {
+  color: #8a8a8a;
+}
+
+/* Chip status vendor (border 1.5px sesuai semantik moderasi). */
+.admin-workspace .adm-chip {
+  border: 1.5px solid var(--adm-ink);
+  border-radius: 4px;
+}
+.admin-workspace .adm-chip-verified {
+  background: #dceedb;
+  color: #1e5b34;
+}
+.admin-workspace .adm-chip-confirmed {
+  background: var(--adm-pending);
+  color: var(--adm-ink);
+}
+.admin-workspace .adm-chip-pending {
+  background: #e8e2d4;
+  color: #44403c;
+}
+.admin-workspace .adm-chip-inactive {
+  background: #f3d3c3;
+  color: #8a2e1b;
+}
+.admin-workspace .adm-chip-nophone {
+  background: var(--adm-accent);
+  color: var(--adm-ink);
+}
+.admin-workspace .adm-chip-clicks {
+  background: #ffffff;
+  color: var(--adm-muted);
+}
+
+/* Metrik antrean dibuat mencolok (highlight kuning kertas). */
+.admin-workspace .adm-metric-queue {
+  background: var(--adm-pending);
+}
