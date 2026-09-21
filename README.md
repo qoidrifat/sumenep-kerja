@@ -1,272 +1,161 @@
-## Overview
+# SumenepKerja — Direktori Jasa & Usaha Lokal Sumenep
 
-This project uses the following tech stack:
-- Vite
-- Typescript
-- React Router v7 (all imports from `react-router` instead of `react-router-dom`)
-- React 19 (for frontend components)
-- Tailwind v4 (for styling)
-- Shadcn UI (for UI components library)
-- Lucide Icons (for icons)
-- Convex (for backend & database)
-- Convex Auth (for authentication)
-- Framer Motion (for animations)
-- Three js (for 3d models)
+> Menghubungkan warga Sumenep dengan tukang, teknisi, dan usaha mikro lokal — **tanpa aplikasi tambahan, tanpa akun, langsung chat WhatsApp.**
 
-All relevant files live in the 'src' directory.
+[![Stack](https://img.shields.io/badge/stack-React%2019%20%C2%B7%20Vite%207%20%C2%B7%20Convex%20%C2%B7%20Tailwind%20v4-blue)](#tech-stack)
+[![PWA](https://img.shields.io/badge/PWA-installable%20%C2%B7%20offline%20shell-emerald)](#progresif-web-app)
+[![License](https://img.shields.io/badge/lisensi-proprietary-orange)](#lisensi)
 
-Use bun for the package manager.
+---
 
-## Setup
+## Daftar Isi
 
-This project is set up already and running on a cloud environment, as well as a convex development in the sandbox.
+- [Tentang](#tentang)
+- [Fitur Unggulan](#fitur-unggulan)
+- [Tech Stack](#tech-stack)
+- [Desain System](#desain-system)
+- [Struktur Proyek](#struktur-proyek)
+- [Mulai Cepat](#mulai-cepat)
+- [Environment Variables](#environment-variables)
+- [Deploy Produksi](#deploy-produksi)
+- [Rute Aplikasi](#rute-aplikasi)
+- [Dashboard Admin](#dashboard-admin)
+- [Quality Gates](#quality-gates)
+- [Lisensi](#lisensi)
+
+---
+
+## Tentang
+
+**SumenepKerja** adalah direktori hyper-lokal untuk layanan, tukang, dan UMKM di Sumenep, Madura. Warga menemukan penyedia jasa lewat patokan lokasi yang mereka kenal (Taman Bunga, Pasar Anom, Masjid Jamik, …) lalu menghubungi langsung via WhatsApp — tanpa booking, tanpa keranjang, tanpa pembayaran di aplikasi. Transaksi terjadi offline antara warga dan mitra.
+
+**Prinsip produk:**
+
+| Prinsip | Artinya |
+|---|---|
+| Zero friction | Tanpa akun, tanpa login untuk warga maupun mitra pendaftar |
+| WhatsApp-first | Semua konversi bermuara ke chat WhatsApp |
+| Usia 30+ | Target sentuh ≥ 48px, teks ≥ 16px, bahasa Indonesia sehari-hari |
+| Anti-pattern | Tanpa booking/kalender, tanpa checkout, tanpa payment gateway, tanpa dashboard vendor |
+
+---
+
+## Fitur Unggulan
+
+- **Tombol WhatsApp Pintar** — draf pesan otomatis per kategori (servis, hajatan, kuliner, transportasi, umum) + pencatatan klik non-blocking untuk analitik engagement.
+- **Filter Patokan Lokal** — pil landmark yang memfilter sekaligus mengurutkan mitra berdasarkan jarak haversine, dan menyuntikkan nama patokan ke draf WhatsApp.
+- **Pendaftaran Mandiri (`/daftar`)** — formulir 1 menit tanpa auth; koordinat otomatis diduplikasi dari landmark terpilih; slug unik anti-bentrok; galeri hingga **3 foto** (@5 MB).
+- **Kartu Digital Mitra (`/v/[slug]`)** — halaman siap-QR (`?ref=sticker`) dengan badge verifikasi, harga, jam kerja, tombol telpon, **bagikan ke tetangga**, dan **rekomendasi warga** (satu ketuk per perangkat, tanpa moderasi).
+- **Badge Buka/Tutup Otomatis** — disimpulkan dari jam kerja (termasuk format kanonis `Buka 08.00 - Tutup 17.00` dan shift malam); ambigu → tidak tampil badge, teks asli tetap ditunjukkan.
+- **Pratinjau Link WhatsApp (OG tags)** — route `/s/<slug>` menyajikan meta per-kartu untuk crawler WA, manusia otomatis di-redirect ke kartu.
+- **Pelaporan Error via WhatsApp Admin** — popup error pada pendaftaran dengan tombol lapor yang mengisi pesan admin otomatis (waktu, tahap, konteks form, pesan error).
+- **Progresif Web App** — service worker (cangkang offline + stale-while-revalidate aset), banner "Pasang di HP", ikon maskable.
+- **QR Sticker (`/qr`)** — generator stiker cetak untuk ditempel di warung mitra.
+- **Dashboard Admin (`/admin`)** — meja triage verifikasi bertema *Warm Brutalism*: 7 metrik, filter antrean, setujui/tolak, cek WA cepat, aktif/nonaktif, edit, hapus. Login passphrase via env.
+
+---
+
+## Tech Stack
+
+| Lapisan | Teknologi |
+|---|---|
+| Frontend | React 19 · Vite 7 · react-router v7 · TypeScript |
+| Styling | Tailwind CSS v4 · shadcn/ui (new-york) · Radix UI · lucide-react |
+| Backend | Convex (query · mutation · HTTP router · file storage · Convex Auth) |
+| Package manager | Bun |
+| Hosting (produksi) | Vercel (frontend statis) + Convex Cloud (backend) |
+
+---
+
+## Desain System
+
+- **Halaman publik:** kartu putih bersih, border `gray-200`, kontras tinggi; hijau WhatsApp `#25D366` **eksklusif** untuk aksi chat; biru `#2563EB` untuk navigasi/CTA lain; container mobile `max-w-md`; unit viewport dinamis (`min-h-dvh`, tanpa `100vh`); safe-area insets untuk notch & gesture bar.
+- **Dashboard admin:** tema terisolasi *Warm Brutalism* (kanvas krem `#FAF7EE`, border hitam 2px, hard shadow, aksen oranye `#FF5A26`) di bawah scope `.admin-workspace` — halaman publik tidak terpengaruh.
+
+---
+
+## Struktur Proyek
+
+```
+├── src/
+│   ├── pages/            # Home, Kategori, Daftar, VendorProfile, StickerQR, Admin, Auth
+│   ├── components/
+│   │   ├── directory/    # VendorCard, WhatsAppButton, RecommendButton, OpenBadge, …
+│   │   ├── layout/       # AppShell (header, bottom-nav)
+│   │   └── ui/           # Primitif shadcn/ui
+│   ├── convex/           # Schema, vendors, directory, admin, files, share (OG), auth
+│   └── lib/              # whatsapp, open-hours, format, pwa, config
+├── public/               # manifest PWA, ikon, sw.js
+├── main.ts               # Server statis Deno/Hono (non-Vercel)
+└── convex.json           # functions: src/convex/
+```
+
+---
+
+## Mulai Cepat
+
+**Prasyarat:** [Bun](https://bun.sh) + akun [Convex](https://convex.dev).
+
+```bash
+# 1. Install dependensi
+bun install
+
+# 2. Hubungkan Convex (membuat deployment dev + mengisi .env.local)
+bunx convex dev
+
+# 3. Jalankan frontend (terminal lain)
+bun run dev
+```
+
+Buka `http://localhost:5173`. Backend dev di `http://127.0.0.1:3210`, dashboard Convex di `https://dashboard.convex.dev`.
+
+> `bunx convex dev` dan `bun run dev` adalah proses watch-mode yang tidak pernah selesai — jalankan di background/terminal terpisah, jangan sebagai foreground blocking di agen CLI.
+
+---
 
 ## Environment Variables
 
-The project is set up with project specific CONVEX_DEPLOYMENT and VITE_CONVEX_URL environment variables on the client side.
+Salin `.env.example` ke `.env.local` (file ini di-ignore git). Variabel frontend memakai prefix `VITE_`:
 
-The convex server has a separate set of environment variables that are accessible by the convex backend.
+| Variabel | Lokasi | Keterangan |
+|---|---|---|
+| `VITE_CONVEX_URL` | Vercel / `.env.local` | URL API Convex (dev: `http://127.0.0.1:3210`) |
+| `VITE_CONVEX_SITE_URL` | Vercel / `.env.local` | URL HTTP actions Convex (dev: `http://127.0.0.1:3211`) — dipakai tombol Bagikan |
+| `SITE_URL` | Env Convex (`convex env set`) | Origin frontend untuk redirect `/s/<slug>` |
+| `ADMIN_PASSCODE` | Env Convex | Passphrase login `/admin` — **wajib diganti di produksi** |
+| `CONVEX_SITE_URL` | Env Convex | Origin frontend untuk JWT Convex Auth |
+| `VLY_CONVEX_AUTH_ISSUER` | Env Convex | Issuer federasi freebuff (default `https://freebuff.com`) |
 
-Currently, these variables include auth-specific keys: JWKS, JWT_PRIVATE_KEY, and SITE_URL.
+---
 
+## Deploy Produksi
 
-# Using Authentication (Important!)
+```bash
+# Backend — deploy fungsi ke production deployment
+npx convex deploy --yes
 
-You must follow these conventions when using authentication.
-
-## Auth is already set up.
-
-All convex authentication functions are already set up. The auth currently uses email OTP and anonymous users, but can support more.
-
-The email OTP configuration is defined in `src/convex/auth/emailOtp.ts`. DO NOT MODIFY THIS FILE.
-
-Also, DO NOT MODIFY THESE AUTH FILES: `src/convex/auth.config.ts` and `src/convex/auth.ts`.
-
-## Using Convex Auth on the backend
-
-On the `src/convex/users.ts` file, you can use the `getCurrentUser` function to get the current user's data.
-
-## Using Convex Auth on the frontend
-
-The `/auth` page is already set up to use auth. Navigate to `/auth` for all log in / sign up sequences.
-
-You MUST use this hook to get user data. Never do this yourself without the hook:
-```typescript
-import { useAuth } from "@/hooks/use-auth";
-
-const { isLoading, isAuthenticated, user, signIn, signOut } = useAuth();
+# Set env produksi (contoh)
+bunx convex env set --prod SITE_URL https://<domain-vercel>.vercel.app
+bunx convex env set --prod ADMIN_PASSCODE "<passphrase-kuat>"
+bunx convex env set --prod VLY_CONVEX_AUTH_ISSUER https://freebuff.com
 ```
 
-## Protected Routes
-
-The starter `/dashboard` route is protected with `RequireAuth`, which sends
-signed-out users to `/auth?returnTo=<current route>`. Extend that page for the
-product's authenticated experience, and reuse `RequireAuth` when adding another
-protected route.
-
-## Auth Page
-
-The auth page is defined in `src/pages/Auth.tsx`. Send sign-in and sign-up actions
-to `/auth`.
-
-## Authorization
-
-You can perform authorization checks on the frontend and backend.
-
-On the frontend, you can use the `useAuth` hook to get the current user's data and authentication state.
-
-You should also be protecting queries, mutations, and actions at the base level, checking for authorization securely.
-
-## Adding a redirect after auth
-
-The `/auth` route in `src/main.tsx` redirects to `/dashboard` by default. If the
-product's main authenticated route is different, update `redirectAfterAuth` to
-that route. A validated same-origin `returnTo` query parameter takes priority so
-users can resume the protected page they originally requested. Never leave an
-authenticated product redirecting back to the public landing page.
-
-## Complete authenticated products
-
-When the requested product implies accounts, a workspace, a dashboard, or other
-signed-in functionality, the task is not complete with only a landing page and
-auth form. Build the main authenticated experience, protect its route, and verify
-that signing in reaches it.
-
-# Frontend Conventions
-
-You will be using the Vite frontend with React 19, Tailwind v4, and Shadcn UI.
-
-Generally, pages should be in the `src/pages` folder, and components should be in the `src/components` folder.
-
-Shadcn primitives are located in the `src/components/ui` folder and should be used by default.
-
-## Page routing
-
-Your page component should go under the `src/pages` folder.
-
-When adding a page, update the react router configuration in `src/main.tsx` to include the new route you just added.
-
-## Shad CN conventions
-
-Follow these conventions when using Shad CN components, which you should use by default.
-- Remember to use "cursor-pointer" to make the element clickable
-- For title text, use the "tracking-tight font-bold" class to make the text more readable
-- Always make apps MOBILE RESPONSIVE. This is important
-- AVOID NESTED CARDS. Try and not to nest cards, borders, components, etc. Nested cards add clutter and make the app look messy.
-- AVOID SHADOWS. Avoid adding any shadows to components. stick with a thin border without the shadow.
-- Avoid skeletons; instead, use the loader2 component to show a spinning loading state when loading data.
-
-
-## Landing Pages
-
-You must always create good-looking designer-level styles to your application. 
-- Make it well animated and fit a certain "theme", ie neo brutalist, retro, neumorphism, glass morphism, etc
-
-Use known images and emojis from online.
-
-If the user is logged in already, show the get started button to say "Dashboard" or "Profile" instead to take them there.
-
-## Responsiveness and formatting
-
-Make sure pages are wrapped in a container to prevent the width stretching out on wide screens. Always make sure they are centered aligned and not off-center.
-
-Always make sure that your designs are mobile responsive. Verify the formatting to ensure it has correct max and min widths as well as mobile responsiveness.
-
-- Always create sidebars for protected dashboard pages and navigate between pages
-- Always create navbars for landing pages
-- On these bars, the created logo should be clickable and redirect to the index page
-
-## Animating with Framer Motion
-
-You must add animations to components using Framer Motion. It is already installed and configured in the project.
-
-To use it, import the `motion` component from `framer-motion` and use it to wrap the component you want to animate.
-
-
-### Other Items to animate
-- Fade in and Fade Out
-- Slide in and Slide Out animations
-- Rendering animations
-- Button clicks and UI elements
-
-Animate for all components, including on landing page and app pages.
-
-## Three JS Graphics
-
-Your app comes with three js by default. You can use it to create 3D graphics for landing pages, games, etc.
-
-
-## Colors
-
-You can override colors in: `src/index.css`
-
-This uses the oklch color format for tailwind v4.
-
-Always use these color variable names.
-
-Make sure all ui components are set up to be mobile responsive and compatible with both light and dark mode.
-
-Set theme using `dark` or `light` variables at the parent className.
-
-## Styling and Theming
-
-When changing the theme, always change the underlying theme of the shad cn components app-wide under `src/components/ui` and the colors in the index.css file.
-
-Avoid hardcoding in colors unless necessary for a use case, and properly implement themes through the underlying shad cn ui components.
-
-When styling, ensure buttons and clickable items have pointer-click on them (don't by default).
-
-Always follow a set theme style and ensure it is tuned to the user's liking.
-
-## Toasts
-
-You should always use toasts to display results to the user, such as confirmations, results, errors, etc.
-
-Use the shad cn Sonner component as the toaster. For example:
-
-```
-import { toast } from "sonner"
-
-import { Button } from "@/components/ui/button"
-export function SonnerDemo() {
-  return (
-    <Button
-      variant="outline"
-      onClick={() =>
-        toast("Event has been created", {
-          description: "Sunday, December 03, 2023 at 9:00 AM",
-          action: {
-            label: "Undo",
-            onClick: () => console.log("Undo"),
-          },
-        })
-      }
-    >
-      Show Toast
-    </Button>
-  )
-}
-```
-
-Remember to import { toast } from "sonner". Usage: `toast("Event has been created.")`
-
-## Dialogs
-
-Always ensure your larger dialogs have a scroll in its content to ensure that its content fits the screen size. Make sure that the content is not cut off from the screen.
-
-Ideally, instead of using a new page, use a Dialog instead. 
-
-# Using the Convex backend
-
-You will be implementing the convex backend. Follow your knowledge of convex and the documentation to implement the backend.
-
-## The Convex Schema
-
-You must correctly follow the convex schema implementation.
-
-The schema is defined in `src/convex/schema.ts`.
-
-Do not include the `_id` and `_creationTime` fields in your queries (it is included by default for each table).
-Do not index `_creationTime` as it is indexed for you. Never have duplicate indexes.
-
-
-## Convex Actions: Using CRUD operations
-
-When running anything that involves external connections, you must use a convex action with "use node" at the top of the file.
-
-You cannot have queries or mutations in the same file as a "use node" action file. Thus, you must use pre-built queries and mutations in other files.
-
-You can also use the pre-installed internal crud functions for the database:
-
-```ts
-// in convex/users.ts
-import { crud } from "convex-helpers/server/crud";
-import schema from "./schema.ts";
-
-export const { create, read, update, destroy } = crud(schema, "users");
-
-// in some file, in an action:
-const user = await ctx.runQuery(internal.users.read, { id: userId });
-
-await ctx.runMutation(internal.users.update, {
-  id: userId,
-  patch: {
-    status: "inactive",
-  },
-});
-```
-
-
-## Common Convex Mistakes To Avoid
-
-When using convex, make sure:
-- Document IDs are referenced as `_id` field, not `id`.
-- Document ID types are referenced as `Id<"TableName">`, not `string`.
-- Document object types are referenced as `Doc<"TableName">`.
-- Keep schemaValidation to false in the schema file.
-- You must correctly type your code so that it passes the type checker.
-- You must handle null / undefined cases of your convex queries for both frontend and backend, or else it will throw an error that your data could be null or undefined.
-- Always use the `@/folder` path, with `@/convex/folder/file.ts` syntax for importing convex files.
-- This includes importing generated files like `@/convex/_generated/server`, `@/convex/_generated/api`
-- Remember to import functions like useQuery, useMutation, useAction, etc. from `convex/react`
-- NEVER have return type validators.
+**Vercel:** Build Command `bun run build` (`tsc -b && vite build`), Output Directory `dist`, dan file `vercel.json` berisi SPA rewrite ke `/index.html` agar rute `/v/:slug`, `/daftar`, `/kategori`, `/qr`, `/admin` dapat dibuka langsung. Isi env `VITE_CONVEX_URL` + `VITE_CONVEX_SITE_URL` dengan URL **produksi** (`.convex.cloud` / `.convex.site`).
+
+> Deployment dev berisi seed 61 vendor contoh (`ensureSeedData`). Pastikan data produksi disiapkan/disensor sesuai kebutuhan sebelum diumumkan.
+
+---
+
+## Rute Aplikasi
+
+| Rute | Keterangan |
+|---|---|
+| `/` | Beranda: pencarian, pil patokan, katalog mitra |
+| `/kategori` | Katalog usaha per kategori |
+| `/daftar` | Formulir pendaftaran mandiri (publik, tanpa auth) |
+| `/v/:slug` | Kartu digital mitra (+ `?ref=sticker` untuk kunjungan QR) |
+| `/s/:slug` | Halaman share OG (disajikan Convex, redirect ke kartu) |
+| `/qr?vendor=:slug` | Generator QR sticker cetak |
+| `/admin` | Dashboard moderasi (passphrase) |
+| `/auth` | Masuk/daf
+...[truncated 911 chars]
