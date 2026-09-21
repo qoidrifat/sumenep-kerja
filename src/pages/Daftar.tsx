@@ -19,6 +19,7 @@ import { formatRupiah } from "@/lib/format";
 import {
   generateAdminErrorReportLink,
   generateVerificationConfirmLink,
+  sanitizePhoneNumber,
 } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
@@ -150,6 +151,75 @@ export default function Daftar() {
       return;
     }
 
+    // Validasi awal di klien (cermin aturan server) agar gagal cepat SEBELUM
+    // mengunggah foto — hemat kuota warga di sinyal lemah.
+    if (name.trim().length < 3) {
+      setStatus({
+        kind: "error",
+        message: "Nama usaha minimal 3 karakter.",
+        lock: false,
+      });
+      return;
+    }
+    if (addressText.trim().length < 5) {
+      setStatus({
+        kind: "error",
+        message: "Alamat lengkap wajib diisi.",
+        lock: false,
+      });
+      return;
+    }
+    const sanitizedPhone = sanitizePhoneNumber(phone);
+    if (
+      sanitizedPhone.length < 10 ||
+      sanitizedPhone.length > 15 ||
+      !sanitizedPhone.startsWith("62")
+    ) {
+      setStatus({
+        kind: "error",
+        message: "Nomor WhatsApp tidak valid. Contoh: 081234567890",
+        lock: false,
+      });
+      return;
+    }
+
+    // Unggah satu file dengan retry: sinyal seluler pelosok sering putus
+    // sesaat ("Failed to fetch"). Setiap percobaan memakai upload URL baru
+    // karena URL lama bisa kedaluwarsa/terpakai.
+    const uploadOnePhoto = async (imageFile: File): Promise<IdStorage> => {
+      const MAX_ATTEMPTS = 3;
+      let lastError: unknown = null;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          const uploadUrl = await generateUploadUrl();
+          const result = await fetch(uploadUrl, {
+            method: "POST",
+            headers: { "Content-Type": imageFile.type },
+            body: imageFile,
+          });
+          if (!result.ok && (result.status >= 500 || result.status === 408 || result.status === 429)) {
+            throw new Error(`HTTP ${result.status}`);
+          }
+          if (!result.ok) throw new Error("Gagal mengunggah foto. Coba lagi.");
+          const json = (await result.json()) as { storageId?: unknown };
+          if (typeof json.storageId !== "string" || !json.storageId) {
+            throw new Error("Gagal mengunggah foto. Coba lagi.");
+          }
+          return json.storageId as IdStorage;
+        } catch (error) {
+          lastError = error;
+          if (attempt < MAX_ATTEMPTS) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, 800 * attempt),
+            );
+          }
+        }
+      }
+      throw lastError instanceof Error
+        ? lastError
+        : new Error("Gagal mengunggah foto. Periksa sinyal lalu coba lagi.");
+    };
+
     let failedStage = "Mengirim formulir";
     try {
       // 1. Unggah foto satu per satu (jika ada) ke penyimpanan Convex.
@@ -160,24 +230,12 @@ export default function Daftar() {
         failedStage = "Mengunggah foto";
         imageStorageIds = [];
         for (let i = 0; i < imageFiles.length; i++) {
-          const imageFile = imageFiles[i];
           setStatus({
             kind: "uploading",
             current: i + 1,
             total: imageFiles.length,
           });
-          const uploadUrl = await generateUploadUrl();
-          const result = await fetch(uploadUrl, {
-            method: "POST",
-            headers: { "Content-Type": imageFile.type },
-            body: imageFile,
-          });
-          if (!result.ok) throw new Error("Gagal mengunggah foto. Coba lagi.");
-          const json = (await result.json()) as { storageId?: unknown };
-          if (typeof json.storageId !== "string" || !json.storageId) {
-            throw new Error("Gagal mengunggah foto. Coba lagi.");
-          }
-          imageStorageIds.push(json.storageId as IdStorage);
+          imageStorageIds.push(await uploadOnePhoto(imageFiles[i]));
         }
       }
 
@@ -215,12 +273,17 @@ export default function Daftar() {
     } catch (error) {
       // ConvexError.data diteruskan backend ke klien bahkan di deployment
       // produksi (pesan Error biasa disensor jadi "Server Error" di sana).
-      const message =
-        error instanceof ConvexError
-          ? String(error.data ?? "Terjadi kesalahan. Silakan coba lagi.")
-          : error instanceof Error
-            ? error.message
-            : "Terjadi kesalahan. Silakan coba lagi.";
+      // "Failed to fetch" (bahasa browser saat jaringan putus) diterjemahkan
+      // ke bahasa warga.
+      let message = "Terjadi kesalahan. Silakan coba lagi.";
+      if (error instanceof ConvexError) {
+        message = String(error.data ?? message);
+      } else if (error instanceof Error && error.message) {
+        message =
+          error.message === "Failed to fetch"
+            ? "Gagal mengunggah foto karena sinyal terputus. Periksa sinyal internet lalu coba lagi."
+            : error.message;
+      }
       setStatus({
         kind: "error",
         message,
