@@ -25,9 +25,9 @@ import { cn } from "@/lib/utils";
 
 type IdStorage = Id<"_storage">;
 
-/** Batas galeri: 3 foto @5MB — hemat kuota sekaligus cepat di sinyal pelosok. */
+/** Batas galeri: 3 foto @1MB — ringan di sinyal pelosok, hemat storage. */
 const MAX_PHOTOS = 3;
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const MAX_PHOTO_BYTES = 1 * 1024 * 1024;
 
 type Status =
   | { kind: "idle" }
@@ -96,7 +96,7 @@ export default function Daftar() {
       if (file.size > MAX_PHOTO_BYTES) {
         setStatus({
           kind: "error",
-          message: "Ukuran tiap foto maksimal 5 MB.",
+          message: "Ukuran tiap foto maksimal 1 MB.",
           lock: false,
         });
         return;
@@ -703,7 +703,7 @@ export default function Daftar() {
               className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 bg-white px-4 py-4 text-base font-medium text-gray-700 transition-colors hover:border-blue-400 hover:text-blue-700"
             >
               <ImagePlus className="size-5" aria-hidden="true" />
-              Pilih Foto (opsional, maks {MAX_PHOTOS}, @5 MB)
+              Pilih Foto (opsional, maks {MAX_PHOTOS}, @1 MB)
             </button>
           )}
         </div>

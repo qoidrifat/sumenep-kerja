@@ -109,7 +109,7 @@ Horizontal scrollable 48px pills below the search bar: Semua Kota + the five see
 Prominent blue gradient banner above the footer/bottom bar: title "Punya Usaha atau Jasa di Sumenep?", subtitle "Daftarkan usaha Anda gratis. Cukup 1 menit langsung tampil di pencarian warga.", CTA button `+ Daftarkan Usaha Saya Gratis` → `/daftar`.
 
 ### 4. Formulir Pendaftaran Mandiri (`/daftar`)
-Single-page, zero-auth form. Mandatory: Nama Usaha, Kategori (select from `categories`), Nomor WhatsApp Aktif (numeric-sanitized), Patokan Landmark (tappable selector), Alamat Lengkap (textarea), Biaya Mulai Dari (number). Optional: jam kerja, foto (≤5 MB).
+Single-page, zero-auth form. Mandatory: Nama Usaha, Kategori (select from `categories`), Nomor WhatsApp Aktif (numeric-sanitized), Patokan Landmark (tappable selector), Alamat Lengkap (textarea), Biaya Mulai Dari (number). Optional: jam kerja, foto (≤1 MB).
 - **CRITICAL — Automatic Coordinate Duplication:** users aged 30+ cannot drop GPS pins. The `registerVendor` mutation MUST copy the selected landmark's coordinates into the vendor row — `lat`/`lng` are never null.
 - **Automatic Slug Generation:** `slug` is UNIQUE NOT NULL. Generate from `slugify(name)`; on collision append timestamp + random suffix (`slugify(name)-<ts4>-<rand2>`) so inserts never violate the unique constraint.
 - **Photo Storage (optional path):** upload is optional; when absent, cards and profile pages fall back to a category-specific gradient + icon placeholder. (Implementation: Convex file storage via `files/generateUploadUrl`; no bucket to create.)

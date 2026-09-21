@@ -1279,7 +1279,7 @@ export const registerVendor = mutation({
         .slice(2, 4)}`;
     }
 
-    // Galeri: maksimal 3 foto @5MB (dibatasi di klien, dijaga juga di sini).
+    // Galeri: maksimal 3 foto @1MB (dibatasi di klien, dijaga juga di sini).
     const imageIds = args.imageStorageIds ?? [];
     if (imageIds.length > 3) {
       throw new ConvexError("Maksimal 3 foto.");

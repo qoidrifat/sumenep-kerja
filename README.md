@@ -44,7 +44,7 @@
 
 - **Tombol WhatsApp Pintar** — draf pesan otomatis per kategori (servis, hajatan, kuliner, transportasi, umum) + pencatatan klik non-blocking untuk analitik engagement.
 - **Filter Patokan Lokal** — pil landmark yang memfilter sekaligus mengurutkan mitra berdasarkan jarak haversine, dan menyuntikkan nama patokan ke draf WhatsApp.
-- **Pendaftaran Mandiri (`/daftar`)** — formulir 1 menit tanpa auth; koordinat otomatis diduplikasi dari landmark terpilih; slug unik anti-bentrok; galeri hingga **3 foto** (@5 MB).
+- **Pendaftaran Mandiri (`/daftar`)** — formulir 1 menit tanpa auth; koordinat otomatis diduplikasi dari landmark terpilih; slug unik anti-bentrok; galeri hingga **3 foto** (@1 MB).
 - **Kartu Digital Mitra (`/v/[slug]`)** — halaman siap-QR (`?ref=sticker`) dengan badge verifikasi, harga, jam kerja, tombol telpon, **bagikan ke tetangga**, dan **rekomendasi warga** (satu ketuk per perangkat, tanpa moderasi).
 - **Badge Buka/Tutup Otomatis** — disimpulkan dari jam kerja (termasuk format kanonis `Buka 08.00 - Tutup 17.00` dan shift malam); ambigu → tidak tampil badge, teks asli tetap ditunjukkan.
 - **Pratinjau Link WhatsApp (OG tags)** — route `/s/<slug>` menyajikan meta per-kartu untuk crawler WA, manusia otomatis di-redirect ke kartu.
