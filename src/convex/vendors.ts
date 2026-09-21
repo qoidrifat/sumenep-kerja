@@ -1180,6 +1180,8 @@ export const getBySlug = query({
       distanceDisplay: null,
       landmarkName: landmark?.name ?? null,
       landmarkSlug: landmark?.slug ?? null,
+      lat: vendor.lat,
+      lng: vendor.lng,
     };
   },
 });

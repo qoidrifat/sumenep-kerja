@@ -29,6 +29,8 @@ export interface VendorListItem {
 export interface VendorDetail extends VendorListItem {
   landmarkName: string | null;
   landmarkSlug: string | null;
+  lat: number;
+  lng: number;
 }
 
 /** Kategori + jumlah mitra aktif (untuk halaman Katalog Usaha). */

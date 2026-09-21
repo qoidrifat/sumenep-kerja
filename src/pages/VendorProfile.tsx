@@ -8,6 +8,7 @@ import {
   Eye,
   Hourglass,
   MapPin,
+  Navigation,
   Phone,
   Share2,
   ShieldQuestion,
@@ -42,11 +43,14 @@ export default function VendorProfile() {
   }, [vendor]);
 
   const [activePhoto, setActivePhoto] = useState(0);
+  const [photoSlug, setPhotoSlug] = useState(slug);
 
   // Reset foto aktif saat berpindah kartu (komponen dipakai ulang per slug).
-  useEffect(() => {
+  // Penyesuaian state saat render — pola resmi React, tanpa effect berantai.
+  if (photoSlug !== slug) {
+    setPhotoSlug(slug);
     setActivePhoto(0);
-  }, [slug]);
+  }
 
   // Galeri: imageUrls baru, fallback imageId lama untuk data lawas.
   const photos =
@@ -265,6 +269,36 @@ export default function VendorProfile() {
                   )}
                 </span>
               </p>
+            </div>
+
+            {/* Lokasi — peta perkiraan + rute. Koordinat selalu ada karena
+                diduplikasi dari patokan landmark saat pendaftaran. */}
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+              <iframe
+                title={`Peta lokasi ${vendor.name}`}
+                src={`https://maps.google.com/maps?q=${vendor.lat},${vendor.lng}&z=16&output=embed`}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="h-48 w-full border-0"
+              />
+              <div className="p-3">
+                <p className="text-sm text-gray-600">
+                  Lokasi perkiraan
+                  {vendor.landmarkName
+                    ? ` mengikuti patokan ${vendor.landmarkName}`
+                    : ""}
+                  . Tanya titik pasnya lewat chat WhatsApp.
+                </p>
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${vendor.lat},${vendor.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white shadow-sm transition-colors hover:bg-blue-700"
+                >
+                  <Navigation className="size-5" aria-hidden="true" />
+                  Lihat Arah ke Lokasi
+                </a>
+              </div>
             </div>
 
             {/* Harga & jam */}
