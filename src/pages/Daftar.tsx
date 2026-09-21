@@ -16,6 +16,7 @@ import {
 import { api } from "@/convex/_generated/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { formatRupiah } from "@/lib/format";
+import { compressImage } from "@/lib/image";
 import {
   generateAdminErrorReportLink,
   generateVerificationConfirmLink,
@@ -31,6 +32,7 @@ const MAX_PHOTO_BYTES = 1 * 1024 * 1024;
 
 type Status =
   | { kind: "idle" }
+  | { kind: "compressing"; current: number; total: number }
   | { kind: "uploading"; current: number; total: number }
   | { kind: "submitting" }
   | { kind: "success"; slug: string; name: string; phone: string }
@@ -66,14 +68,20 @@ export default function Daftar() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
-  const busy = status.kind === "uploading" || status.kind === "submitting";
+  const busy =
+    status.kind === "compressing" ||
+    status.kind === "uploading" ||
+    status.kind === "submitting";
 
   // Sanitasi otomatis: hanya angka, maksimal 15 digit.
   const handlePhoneChange = (value: string) => {
     setPhone(value.replace(/\D/g, "").slice(0, 15));
   };
 
-  const handleFiles = (files: FileList | File[]) => {
+  // Pilih foto: kompresi otomatis 2-pass agar foto HP besar lolos batas
+  // 1 MB. Gagal decode (mis. format tak didukung) → pakai file asli lalu
+  // saring ukuran seperti biasa.
+  const handleFiles = async (files: FileList | File[]) => {
     const incoming = Array.from(files);
     if (incoming.length === 0) return;
     if (imageFiles.length + incoming.length > MAX_PHOTOS) {
@@ -93,21 +101,41 @@ export default function Daftar() {
         });
         return;
       }
-      if (file.size > MAX_PHOTO_BYTES) {
-        setStatus({
-          kind: "error",
-          message: "Ukuran tiap foto maksimal 1 MB.",
-          lock: false,
-        });
-        return;
-      }
     }
-    setImageFiles((prev) => [...prev, ...incoming]);
+    setStatus({ kind: "compressing", current: 0, total: incoming.length });
+    const compressed: File[] = [];
+    try {
+      for (let i = 0; i < incoming.length; i++) {
+        const file = incoming[i];
+        setStatus({ kind: "compressing", current: i + 1, total: incoming.length });
+        let out = file;
+        try {
+          out = await compressImage(file);
+          if (out.size > MAX_PHOTO_BYTES) {
+            out = await compressImage(file, { maxDim: 1024, quality: 0.7 });
+          }
+        } catch {
+          out = file;
+        }
+        if (out.size > MAX_PHOTO_BYTES) {
+          setStatus({
+            kind: "error",
+            message: `Foto "${file.name}" masih di atas 1 MB setelah dikecilkan. Coba foto lain.`,
+            lock: false,
+          });
+          return;
+        }
+        compressed.push(out);
+      }
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+    setImageFiles((prev) => [...prev, ...compressed]);
     setImagePreviews((prev) => [
       ...prev,
-      ...incoming.map((file) => URL.createObjectURL(file)),
+      ...compressed.map((file) => URL.createObjectURL(file)),
     ]);
-    if (status.kind === "error") setStatus({ kind: "idle" });
+    setStatus({ kind: "idle" });
   };
 
   const removePhoto = (index: number) => {
@@ -669,7 +697,7 @@ export default function Daftar() {
             multiple
             className="hidden"
             onChange={(e) => {
-              if (e.target.files) handleFiles(e.target.files);
+              if (e.target.files) void handleFiles(e.target.files);
             }}
           />
           {imagePreviews.length > 0 && (
@@ -706,6 +734,9 @@ export default function Daftar() {
               Pilih Foto (opsional, maks {MAX_PHOTOS}, @1 MB)
             </button>
           )}
+          <p className="mt-1 text-sm text-gray-600">
+            Foto besar dari HP dikecilkan otomatis agar cepat terkirim.
+          </p>
         </div>
 
         {/* Submit */}
@@ -719,7 +750,9 @@ export default function Daftar() {
               <Loader2 className="size-5 animate-spin" aria-hidden="true" />
               {status.kind === "uploading"
                 ? `Mengunggah foto ${status.current}/${status.total}…`
-                : "Mendaftarkan…"}
+                : status.kind === "compressing"
+                  ? `Mengecilkan foto ${status.current}/${status.total}…`
+                  : "Mendaftarkan…"}
             </>
           ) : (
             <>
