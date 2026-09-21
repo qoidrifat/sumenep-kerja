@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
 import { sanitizePhoneNumber } from "../lib/whatsapp";
@@ -1241,27 +1241,28 @@ export const registerVendor = mutation({
   args: registerArgs,
   handler: async (ctx, args) => {
     const name = args.name.trim();
-    if (name.length < 3) throw new Error("Nama usaha minimal 3 karakter.");
+    if (name.length < 3)
+      throw new ConvexError("Nama usaha minimal 3 karakter.");
     if (args.addressText.trim().length < 5) {
-      throw new Error("Alamat lengkap wajib diisi.");
+      throw new ConvexError("Alamat lengkap wajib diisi.");
     }
 
     const phone = sanitizePhoneNumber(args.phoneNumber);
     if (phone.length < 10 || phone.length > 15 || !phone.startsWith("62")) {
-      throw new Error("Nomor WhatsApp tidak valid. Contoh: 081234567890");
+      throw new ConvexError("Nomor WhatsApp tidak valid. Contoh: 081234567890");
     }
 
     const category = await ctx.db
       .query("categories")
       .withIndex("by_slug", (q) => q.eq("slug", args.categorySlug))
       .unique();
-    if (!category) throw new Error("Kategori layanan tidak ditemukan.");
+    if (!category) throw new ConvexError("Kategori layanan tidak ditemukan.");
 
     const landmark = await ctx.db
       .query("landmarks")
       .withIndex("by_slug", (q) => q.eq("slug", args.landmarkSlug))
       .unique();
-    if (!landmark) throw new Error("Patokan lokasi wajib dipilih.");
+    if (!landmark) throw new ConvexError("Patokan lokasi wajib dipilih.");
 
     // Slug unik otomatis dari nama usaha. Bila bentrok, tambahkan stempel
     // waktu + acak agar kolom slug (unik & wajib) tidak pernah bentrok.
@@ -1279,7 +1280,7 @@ export const registerVendor = mutation({
     // Galeri: maksimal 3 foto @5MB (dibatasi di klien, dijaga juga di sini).
     const imageIds = args.imageStorageIds ?? [];
     if (imageIds.length > 3) {
-      throw new Error("Maksimal 3 foto.");
+      throw new ConvexError("Maksimal 3 foto.");
     }
     const legacyIds = args.imageStorageId ? [args.imageStorageId] : [];
     const allImageIds = [...legacyIds, ...imageIds].slice(0, 3);

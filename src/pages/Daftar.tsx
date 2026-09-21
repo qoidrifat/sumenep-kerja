@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useMutation, useQuery } from "convex/react";
+import { ConvexError } from "convex/values";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
   BadgeCheck,
@@ -208,12 +209,17 @@ export default function Daftar() {
       setConfirmSent(false);
       window.scrollTo({ top: 0 });
     } catch (error) {
+      // ConvexError.data diteruskan backend ke klien bahkan di deployment
+      // produksi (pesan Error biasa disensor jadi "Server Error" di sana).
+      const message =
+        error instanceof ConvexError
+          ? String(error.data ?? "Terjadi kesalahan. Silakan coba lagi.")
+          : error instanceof Error
+            ? error.message
+            : "Terjadi kesalahan. Silakan coba lagi.";
       setStatus({
         kind: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Terjadi kesalahan. Silakan coba lagi.",
+        message,
         stage: failedStage,
         dialog: true,
       });
