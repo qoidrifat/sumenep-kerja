@@ -144,41 +144,37 @@ function generateAdminVerificationLink(params: {
 }
 
 /**
- * Tautan "Laporkan Error ke Admin" — untuk warga yang gagal mendaftar /daftar
- * atau menemui error di aplikasi. Pesan tersinkron dengan keadaan error:
- * memuat halaman, tahap (upload foto / submit), pesan error asli, konteks
- * form (nama usaha, kategori, patokan), dan waktu kejadian agar admin bisa
- * mereproduksi tanpa bertanya ulang.
+ * Tautan "Laporkan Error ke Admin" — template profesional yang tersinkron
+ * dengan keadaan error: waktu, URL halaman, tahap, pesan error asli, dan
+ * ringkasan form yang sudah diisi warga agar admin bisa menindaklanjuti
+ * tanpa bertanya ulang.
  */
 export function generateAdminErrorReportLink(params: {
   errorMessage: string;
-  page?: string;
+  pageUrl?: string | null;
   stage?: string;
-  vendorName?: string | null;
-  categorySlug?: string | null;
-  landmarkSlug?: string | null;
+  formLines?: string[];
 }): string {
   const when = new Date().toLocaleString("id-ID", {
     dateStyle: "medium",
     timeStyle: "short",
   });
   const lines = [
-    "Halo Admin SumenepKerja,",
+    "*LAPORAN ERROR — SumenepKerja*",
     "",
-    "Saya menemui ERROR saat memakai aplikasi SumenepKerja dan butuh bantuan.",
+    "Yth. Admin SumenepKerja, saya mengalami kendala dan mohon bantuan.",
     "",
     `Waktu: ${when}`,
-    `Halaman: ${params.page ?? "-"}`,
+    `Halaman: ${params.pageUrl ?? "-"}`,
     `Tahap: ${params.stage ?? "-"}`,
-    params.vendorName ? `Nama usaha diisi: ${params.vendorName}` : null,
-    params.categorySlug ? `Kategori dipilih: ${params.categorySlug}` : null,
-    params.landmarkSlug ? `Patokan dipilih: ${params.landmarkSlug}` : null,
     "",
     "Pesan error:",
     params.errorMessage,
-    "",
-    "Terima kasih.",
-  ].filter((line): line is string => line !== null);
+  ];
+  if (params.formLines && params.formLines.length > 0) {
+    lines.push("", "Data yang sudah saya isi:", ...params.formLines);
+  }
+  lines.push("", "Terima kasih.");
 
   return `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
 }

@@ -33,7 +33,7 @@ type Status =
   | { kind: "uploading"; current: number; total: number }
   | { kind: "submitting" }
   | { kind: "success"; slug: string; name: string; phone: string }
-  | { kind: "error"; message: string; stage?: string; dialog: boolean };
+  | { kind: "error"; message: string; stage?: string; lock: boolean };
 
 export default function Daftar() {
   const navigate = useNavigate();
@@ -47,6 +47,9 @@ export default function Daftar() {
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
 
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  // true setelah warga menekan "Kirim Laporan" — popup terkunci tidak bisa
+  // ditutup sebelum laporan dikirim (khusus error sistem).
+  const [reportSent, setReportSent] = useState(false);
   const [confirmSent, setConfirmSent] = useState(false);
 
   // Field states — dikontrol penuh agar validasi sederhana & jelas.
@@ -76,7 +79,7 @@ export default function Daftar() {
       setStatus({
         kind: "error",
         message: `Maksimal ${MAX_PHOTOS} foto.`,
-        dialog: false,
+        lock: false,
       });
       return;
     }
@@ -85,7 +88,7 @@ export default function Daftar() {
         setStatus({
           kind: "error",
           message: "File harus berupa gambar.",
-          dialog: false,
+          lock: false,
         });
         return;
       }
@@ -93,7 +96,7 @@ export default function Daftar() {
         setStatus({
           kind: "error",
           message: "Ukuran tiap foto maksimal 5 MB.",
-          dialog: false,
+          lock: false,
         });
         return;
       }
@@ -119,12 +122,13 @@ export default function Daftar() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (busy) return;
+    setReportSent(false);
 
     if (!categorySlug) {
       setStatus({
         kind: "error",
         message: "Silakan pilih kategori layanan.",
-        dialog: false,
+        lock: false,
       });
       return;
     }
@@ -132,7 +136,7 @@ export default function Daftar() {
       setStatus({
         kind: "error",
         message: "Silakan pilih patokan lokasi terdekat.",
-        dialog: false,
+        lock: false,
       });
       return;
     }
@@ -141,7 +145,7 @@ export default function Daftar() {
         kind: "error",
         message:
           "Lengkapi jam buka dan jam tutup, atau kosongkan keduanya bila tidak tentu.",
-        dialog: false,
+        lock: false,
       });
       return;
     }
@@ -221,25 +225,46 @@ export default function Daftar() {
         kind: "error",
         message,
         stage: failedStage,
-        dialog: true,
+        lock: true,
       });
     }
   };
 
   const closeErrorDialog = () => {
     if (status.kind !== "error") return;
-    setStatus({ ...status, dialog: false });
+    // Popup terkunci (error sistem) hanya bisa ditutup setelah laporan dikirim.
+    if (status.lock && !reportSent) return;
+    setReportSent(false);
+    setStatus({ kind: "idle" });
   };
 
+  const pageUrl =
+    typeof window !== "undefined" ? window.location.href : "/daftar";
+
+  const jamKerjaText = is24h
+    ? "Buka 24 jam"
+    : openTime && closeTime
+      ? `Buka ${openTime.replace(":", ".")} - Tutup ${closeTime.replace(":", ".")}`
+      : "-";
+
+  const formLines = [
+    `- Nama usaha: ${name.trim() || "-"}`,
+    `- Kategori: ${categorySlug || "-"}`,
+    `- Nomor WhatsApp: ${phone || "-"}`,
+    `- Patokan: ${landmarkSlug || "-"}`,
+    `- Alamat: ${addressText.trim() || "-"}`,
+    `- Biaya mulai: ${minPrice ? `Rp${new Intl.NumberFormat("id-ID").format(Number(minPrice))}` : "-"}`,
+    `- Jam kerja: ${jamKerjaText}`,
+    `- Jumlah foto: ${imageFiles.length}`,
+  ];
+
   const errorReportHref =
-    status.kind === "error" && status.dialog
+    status.kind === "error"
       ? generateAdminErrorReportLink({
           errorMessage: status.message,
-          page: "/daftar",
+          pageUrl,
           stage: status.stage ?? "-",
-          vendorName: name.trim() || null,
-          categorySlug: categorySlug || null,
-          landmarkSlug: landmarkSlug || null,
+          formLines,
         })
       : null;
 
@@ -646,57 +671,102 @@ export default function Daftar() {
         </p>
       </form>
 
-      {/* Pop-up error + lapor ke Admin via WhatsApp */}
-      {status.kind === "error" && status.dialog && (
+      {/* Pop-up error fullscreen: menutupi halaman + blur, terkunci sampai
+          laporan dikirim (khusus error sistem). */}
+      {status.kind === "error" && (
         <div
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="daftar-error-title"
           aria-describedby="daftar-error-desc"
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center"
-          onClick={closeErrorDialog}
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm"
         >
-          <div
-            className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2
-              id="daftar-error-title"
-              className="text-base font-bold text-gray-900"
-            >
+          <div className="my-auto w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
+            <p className="inline-block rounded-full bg-red-100 px-3 py-1 text-sm font-bold text-red-700">
               Pendaftaran Gagal
               {status.stage ? ` — ${status.stage}` : ""}
+            </p>
+            <h2
+              id="daftar-error-title"
+              className="mt-3 text-xl font-extrabold text-gray-900"
+            >
+              Mohon maaf, terjadi kendala
             </h2>
             <p
               id="daftar-error-desc"
-              className="mt-2 text-base break-words text-gray-700"
+              className="mt-2 text-base break-words font-medium text-gray-700"
             >
               {status.message}
             </p>
-            <p className="mt-2 text-sm text-gray-600">
-              Screenshot / kirim pesan ini ke admin agar dibantu lebih cepat.
+
+            <div className="mt-3 rounded-xl bg-gray-50 p-3 text-sm">
+              <p className="font-bold text-gray-900">Lokasi error:</p>
+              <p className="break-all text-gray-700">{pageUrl}</p>
+              <p className="mt-2 font-bold text-gray-900">
+                Data yang sudah Anda isi:
+              </p>
+              <ul className="mt-1 space-y-0.5 text-gray-700">
+                <li>Nama usaha: {name.trim() || "-"}</li>
+                <li>Kategori: {categorySlug || "-"}</li>
+                <li>Patokan: {landmarkSlug || "-"}</li>
+                <li>
+                  Biaya:{" "}
+                  {minPrice
+                    ? `Rp${new Intl.NumberFormat("id-ID").format(Number(minPrice))}`
+                    : "-"}
+                  {" · "}Jam: {jamKerjaText}
+                </li>
+                <li>Foto: {imageFiles.length} file</li>
+              </ul>
+            </div>
+
+            <p className="mt-3 text-base font-semibold text-gray-900">
+              Mohon kirim laporan ke admin agar segera dibantu.
             </p>
+
+            {reportSent && (
+              <p
+                role="status"
+                className="mt-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-base font-semibold text-emerald-700"
+              >
+                ✓ Laporan terbuka di WhatsApp. Admin akan menindaklanjuti —
+                Anda sekarang bisa menutup pesan ini.
+              </p>
+            )}
+
             <div className="mt-4 space-y-2">
-              {errorReportHref && (
+              {errorReportHref && !reportSent && (
                 <a
                   href={errorReportHref}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => setReportSent(true)}
                   className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-white shadow-sm transition-colors hover:brightness-95"
                   style={{ backgroundColor: "#25D366" }}
                 >
                   <MessageCircle className="size-5" aria-hidden="true" />
-                  Laporkan ke Admin via WhatsApp
+                  Kirim Laporan ke Admin
                 </a>
               )}
               <button
                 type="button"
                 onClick={closeErrorDialog}
-                autoFocus
-                className="flex min-h-[48px] w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-base font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+                disabled={status.lock && !reportSent}
+                title={
+                  status.lock && !reportSent
+                    ? "Kirim laporan ke admin terlebih dahulu untuk menutup"
+                    : undefined
+                }
+                className="flex min-h-[48px] w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-base font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Tutup
               </button>
+              {status.lock && !reportSent && (
+                <p className="text-center text-sm text-gray-600">
+                  Kirim laporan ke admin terlebih dahulu untuk menutup pesan
+                  ini.
+                </p>
+              )}
             </div>
           </div>
         </div>
