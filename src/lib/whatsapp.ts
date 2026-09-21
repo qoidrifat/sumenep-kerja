@@ -207,6 +207,29 @@ export function generateShareLink(params: {
 }
 
 /**
+ * Tautan "Laporkan data salah" — warga mengoreksi kartu mitra lewat WhatsApp
+ * admin. Pesan terisi otomatis (nama usaha, slug, link kartu); warga tinggal
+ * melanjutkan mengetik masalah yang ditemukan di bawahnya.
+ */
+export function generateCorrectionReportLink(params: {
+  cardUrl: string;
+  vendorName: string;
+  vendorSlug: string;
+}): string {
+  const message =
+    `*KOREKSI DATA — SumenepKerja*\n\n` +
+    `Yth. Admin SumenepKerja, saya menemukan data yang kurang tepat:\n\n` +
+    `Usaha: ${params.vendorName}\n` +
+    `Slug: ${params.vendorSlug}\n` +
+    `Kartu: ${params.cardUrl}\n\n` +
+    `Masalah yang saya temukan:\n` +
+    `(tulis di sini, contoh: nomor tidak aktif / alamat pindah / sudah tutup)\n\n` +
+    `Terima kasih.`;
+
+  return `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+/**
  * Tautan "Klaim Kartu Saya" — untuk mitra yang kartunya sudah terdaftar
  * (misalnya dari data direktori) dan ingin mengambil alih kartunya.
  */

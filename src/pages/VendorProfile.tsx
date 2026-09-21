@@ -6,6 +6,7 @@ import {
   BadgeCheck,
   Clock,
   Eye,
+  Flag,
   Hourglass,
   MapPin,
   Navigation,
@@ -25,6 +26,7 @@ import { getCategoryIcon, getCategoryTheme } from "@/lib/category-ui";
 import { formatRupiah } from "@/lib/format";
 import {
   generateClaimLink,
+  generateCorrectionReportLink,
   generateShareLink,
   isWhatsAppNumber,
   sanitizePhoneNumber,
@@ -415,6 +417,21 @@ export default function VendorProfile() {
             >
               Cetak QR sticker untuk usaha ini →
             </Link>
+            <div>
+              <a
+                href={generateCorrectionReportLink({
+                  cardUrl,
+                  vendorName: vendor.name,
+                  vendorSlug: vendor.slug,
+                })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[48px] items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:underline"
+              >
+                <Flag className="size-4" aria-hidden="true" />
+                Data kurang tepat? Laporkan ke admin
+              </a>
+            </div>
           </div>
         </main>
       </div>
