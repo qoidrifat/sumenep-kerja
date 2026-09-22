@@ -6,3 +6,9 @@ dist
 
 # Snapshot build lawas tidak boleh ter-commit lagi (BUG-10 audit: isolate/)
 isolate/
+
+# Tooling lokal
+.mimosa/
+
+# Laporan audit hanya untuk pemakaian lokal, tidak untuk repo publik
+AUDIT-REPORT.md
