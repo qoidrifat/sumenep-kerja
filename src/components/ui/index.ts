@@ -59,7 +59,6 @@ export { Menubar, MenubarMenu, MenubarTrigger, MenubarContent, MenubarItem, Menu
 
 // Form Components
 export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectLabel, SelectItem, SelectSeparator, SelectScrollUpButton, SelectScrollDownButton } from "./select"; // ~6KB - Dropdown select
-export { Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField } from "./form"; // ~4KB - Form wrapper with validation
 export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "./input-otp"; // ~5KB - OTP input
 
 // Content Display
@@ -77,17 +76,12 @@ export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableC
 // Complex Interactions
 export { ScrollArea, ScrollBar } from "./scroll-area"; // ~6KB - Custom scrollbars
 export { Drawer, DrawerPortal, DrawerOverlay, DrawerTrigger, DrawerClose, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription } from "./drawer"; // ~12KB - Bottom sheet drawer
-export { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "./carousel"; // ~15KB - Image/content carousel (uses embla-carousel)
-export { Calendar } from "./calendar"; // ~12KB - Date picker calendar (uses react-day-picker)
-export { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandShortcut, CommandSeparator } from "./command"; // ~10KB - Command palette (uses cmdk)
 export { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "./pagination"; // ~5KB
 
 // Layout Components
 export { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "./resizable"; // ~8KB - Resizable panels
 export { Sidebar, SidebarProvider, SidebarTrigger, SidebarInset, SidebarHeader, SidebarFooter, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupAction, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuAction, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarMenuBadge, SidebarSeparator, SidebarRail } from "./sidebar"; // ~10KB
 
-// Data Visualization
-export { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle } from "./chart"; // ~20KB+ (requires recharts - very large!)
 
 // Notifications
 export { Toaster } from "./sonner"; // ~8KB - Toast notifications
@@ -100,7 +94,6 @@ export { Toaster } from "./sonner"; // ~8KB - Toast notifications
  * Example: Building a simple form
  *
  * import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui";
- * import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui";
  * import { Input, Button } from "@/components/ui";
  *
  * Small bundle impact: ~12KB total
@@ -109,11 +102,10 @@ export { Toaster } from "./sonner"; // ~8KB - Toast notifications
 /**
  * Example: Building a complex dashboard
  *
- * import { Card, Tabs, Chart } from "@/components/ui";
- * import { Select, Button } from "@/components/ui";
+ * import { Card, Tabs } from "@/components/ui";
+ * import { Select } from "@/components/ui";
  *
- * Large bundle impact: ~35KB+ (due to Chart/recharts)
- * Consider lazy loading: const Chart = lazy(() => import("@/components/ui/chart"));
+ * Large bundle impact: ~35KB+ total
  */
 
 /**
@@ -135,13 +127,12 @@ export { Toaster } from "./sonner"; // ~8KB - Toast notifications
  *    ❌ import * as UI from "@/components/ui";
  *
  * 2. Lazy load heavy components:
- *    const Chart = lazy(() => import("@/components/ui").then(m => ({ default: m.Chart })));
  *    const Calendar = lazy(() => import("@/components/ui/calendar").then(m => ({ default: m.Calendar })));
  *
  * 3. Group imports by route:
  *    - Landing page: Button, Card, Badge (small components only)
- *    - Dashboard: + Chart, Tabs, Select (add medium components)
- *    - Admin: + Command, Carousel (add large components as needed)
+ *    - Dashboard: + Tabs, Select (add medium components)
+ *    - Admin: + Command (add large components as needed)
  *
  * 4. Prefer native HTML when possible:
  *    - Use <input> instead of Input for simple cases

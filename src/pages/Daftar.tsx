@@ -17,6 +17,7 @@ import { api } from "@/convex/_generated/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { formatRupiah } from "@/lib/format";
 import { compressImage } from "@/lib/image";
+import { ADMIN_WHATSAPP_NUMBER } from "@/lib/env";
 import {
   generateAdminErrorReportLink,
   generateVerificationConfirmLink,
@@ -46,7 +47,7 @@ export default function Daftar() {
   const landmarks = useQuery(api.directory.listLandmarks);
 
   const registerVendor = useMutation(api.vendors.registerVendor);
-  const markVerificationConfirmed = useMutation(api.vendors.markVerificationConfirmed);
+  const requestVerification = useMutation(api.vendors.requestVerification);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
 
   const [status, setStatus] = useState<Status>({ kind: "idle" });
@@ -352,6 +353,7 @@ export default function Daftar() {
   const errorReportHref =
     status.kind === "error"
       ? generateAdminErrorReportLink({
+          adminNumber: ADMIN_WHATSAPP_NUMBER,
           errorMessage: status.message,
           pageUrl,
           stage: status.stage ?? "-",
@@ -367,6 +369,7 @@ export default function Daftar() {
     const confirmHref =
       cardUrl
         ? generateVerificationConfirmLink({
+            adminNumber: ADMIN_WHATSAPP_NUMBER,
             cardUrl,
             vendorName: status.name,
             phoneNumber: status.phone,
@@ -411,7 +414,7 @@ export default function Daftar() {
                 rel="noopener noreferrer"
                 onClick={() => {
                   setConfirmSent(true);
-                  void markVerificationConfirmed({ slug: status.slug }).catch(
+                  void requestVerification({ slug: status.slug }).catch(
                     () => {
                       // Non-blocking — kegagalan hanya berarti badge
                       // "Menunggu" tidak muncul di kartu.

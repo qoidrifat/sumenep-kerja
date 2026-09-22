@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, createElement } from "react";
 import { Link, useParams } from "react-router";
 import { useQuery } from "convex/react";
 import {
@@ -24,6 +24,7 @@ import { RecommendButton } from "@/components/directory/RecommendButton";
 import { OpenBadge } from "@/components/directory/OpenBadge";
 import { getCategoryIcon, getCategoryTheme } from "@/lib/category-ui";
 import { formatRupiah } from "@/lib/format";
+import { ADMIN_WHATSAPP_NUMBER } from "@/lib/env";
 import {
   generateClaimLink,
   generateCorrectionReportLink,
@@ -77,6 +78,7 @@ export default function VendorProfile() {
   const claimHref =
     vendor && cardUrl
       ? generateClaimLink({
+          adminNumber: ADMIN_WHATSAPP_NUMBER,
           cardUrl,
           vendorName: vendor.name,
           phoneNumber: vendor.phoneNumber || null,
@@ -213,10 +215,11 @@ export default function VendorProfile() {
                 <span
                   className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-sm font-semibold ${getCategoryTheme(vendor.categorySlug).chip}`}
                 >
-                  {(() => {
-                    const Icon = getCategoryIcon(vendor.categoryIcon);
-                    return <Icon className="size-3.5" aria-hidden="true" />;
-                  })()}
+                  {(() =>
+                    createElement(getCategoryIcon(vendor.categoryIcon), {
+                      className: "size-3.5",
+                      "aria-hidden": true,
+                    }))()}
                   {vendor.categoryName}
                 </span>
                 {vendor.isVerified && (
@@ -420,6 +423,7 @@ export default function VendorProfile() {
             <div>
               <a
                 href={generateCorrectionReportLink({
+                  adminNumber: ADMIN_WHATSAPP_NUMBER,
                   cardUrl,
                   vendorName: vendor.name,
                   vendorSlug: vendor.slug,

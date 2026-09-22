@@ -1,11 +1,18 @@
 import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
-import { sanitizePhoneNumber } from "../lib/whatsapp";
+import { isWhatsAppNumber, sanitizePhoneNumber } from "../lib/whatsapp";
+import { MAX_PHOTOS, assertValidImageStorageIds } from "./files";
+import { enforceRateLimit, LIMITS } from "./lib/rateLimit";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** Pusat wilayah Sumenep untuk geofence (alun-alun / Taman Bunga Adipura). */
+const SUMENEP_CENTER = { lat: -7.0069, lng: 113.8617 };
+/** Radius geofence dari patokan terpilih & pusat kota (meter). */
+export const MAX_GPS_DISTANCE_M = 35_000;
 
 /** Jarak haversine (meter) antara dua titik koordinat. */
 function haversineMeters(
@@ -23,6 +30,26 @@ function haversineMeters(
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(a));
 }
+
+/**
+ * Status verifikasi yang ditampilkan publik.
+ *
+ * `verificationStatus` hanya ditulis admin; permintaan klaim dari mitra/warga
+ * masuk ke `claimRequestedAt` (lihat schema.ts). Dengan begitu pihak luar tidak
+ * bisa mengubah tampilan kartu publik milik orang lain (HIGH-1).
+ */
+function publicVerificationStatus(v: {
+  isVerified?: boolean;
+  verificationStatus?: "pending" | "confirmed";
+  claimRequestedAt?: number;
+}): "verified" | "confirmed" | "pending" {
+  if (v.isVerified === true) return "verified";
+  if (v.verificationStatus === "confirmed" || v.claimRequestedAt !== undefined) {
+    return "confirmed";
+  }
+  return "pending";
+}
+
 
 /** "850 m" di bawah 1 km, "2,4 km" di atasnya (format Indonesia). */
 export function formatDistance(meters: number): string {
@@ -114,6 +141,9 @@ const SEED_LANDMARKS = [
   },
 ];
 
+// BUG-5 audit: kategori "servis-teknik" (sortOrder 1, paling menonjol di UI)
+// tidak boleh kosong — kesan pertama terburuk bagi pengguna baru. Tiga teknisi
+// pintar (kompor gas, mesin cuci) dari dataset digolongkan ke kategori ini.
 type SeedVendor = {
   categorySlug: string;
   landmarkSlug: string;
@@ -257,7 +287,7 @@ const SEED_VENDORS: SeedVendor[] = [
     isVerified: false,
   },
   {
-    categorySlug: "rumah-tangga-kunci",
+    categorySlug: "servis-teknik",
     landmarkSlug: "taman-adipura",
     name: "Teknisi Kompor Gas Sumenep SERVIS PANGGILAN",
     slug: "teknisi-kompor-gas-sumenep-servis-panggilan",
@@ -505,7 +535,7 @@ const SEED_VENDORS: SeedVendor[] = [
     isVerified: true,
   },
   {
-    categorySlug: "rumah-tangga-kunci",
+    categorySlug: "servis-teknik",
     landmarkSlug: "area-keraton",
     name: "Cahaya Tehnik Servis Mesin Cuci dan Kulkas",
     slug: "cahaya-tehnik-servis-mesin-cuci-kulkas",
@@ -653,7 +683,7 @@ const SEED_VENDORS: SeedVendor[] = [
     isVerified: false,
   },
   {
-    categorySlug: "rumah-tangga-kunci",
+    categorySlug: "servis-teknik",
     landmarkSlug: "taman-adipura",
     name: "Service Kompor Gas",
     slug: "service-kompor-gas",
@@ -1037,12 +1067,17 @@ export const replaceAllSeedData = internalMutation({
 export const ensureSeedData = mutation({
   args: {},
   handler: async (ctx) => {
+    // HIGH-1 audit: ini write endpoint publik. Idempoten, tetapi tetap harus
+    // dibatasi agar tidak bisa dipanggil tanpa hambatan (melelahkan database).
+    await enforceRateLimit(ctx, "seed:global", LIMITS.seedGlobal);
+
     const anyVendor = await ctx.db.query("vendors").first();
     if (anyVendor) return { seeded: false as const };
     await upsertSeedData(ctx);
     return { seeded: true as const };
   },
 });
+
 
 // ---------------------------------------------------------------------------
 // Queries
@@ -1127,9 +1162,7 @@ export const browse = query({
           imageUrl: vendor.imageId ? await ctx.storage.getUrl(vendor.imageId) : null,
           imageUrls: await resolveGalleryUrls(ctx, vendor.imageId, vendor.imageIds),
           isVerified: vendor.isVerified === true,
-          verificationStatus:
-            vendor.verificationStatus ??
-            (vendor.isVerified === true ? ("verified" as const) : ("pending" as const)),
+          verificationStatus: publicVerificationStatus(vendor),
           whatsappClicks: vendor.whatsappClicks ?? 0,
           recommendCount: vendor.recommendCount ?? 0,
           distanceMeters,
@@ -1171,9 +1204,7 @@ export const getBySlug = query({
       imageUrl: vendor.imageId ? await ctx.storage.getUrl(vendor.imageId) : null,
       imageUrls: await resolveGalleryUrls(ctx, vendor.imageId, vendor.imageIds),
       isVerified: vendor.isVerified === true,
-      verificationStatus:
-        vendor.verificationStatus ??
-        (vendor.isVerified === true ? ("verified" as const) : ("pending" as const)),
+      verificationStatus: publicVerificationStatus(vendor),
       whatsappClicks: vendor.whatsappClicks ?? 0,
       recommendCount: vendor.recommendCount ?? 0,
       distanceMeters: null,
@@ -1245,13 +1276,44 @@ export const registerVendor = mutation({
     const name = args.name.trim();
     if (name.length < 3)
       throw new ConvexError("Nama usaha minimal 3 karakter.");
-    if (args.addressText.trim().length < 5) {
+    if (name.length > 150)
+      throw new ConvexError("Nama usaha maksimal 150 karakter.");
+
+    const addressText = args.addressText.trim();
+    if (addressText.length < 5) {
       throw new ConvexError("Alamat lengkap wajib diisi.");
     }
+    if (addressText.length > 500) {
+      throw new ConvexError("Alamat maksimal 500 karakter.");
+    }
 
+    // Satu sumber kebenaran dengan klien (HIGH-2 audit): harus nomor seluler
+    // Indonesia. Nomor darat seperti "(0328) 664843" sebelumnya lolos karena
+    // server hanya cek awalan "62" + panjang, padahal tombol WhatsApp-nya
+    // tidak akan dirender (kartu jadi "mati").
     const phone = sanitizePhoneNumber(args.phoneNumber);
-    if (phone.length < 10 || phone.length > 15 || !phone.startsWith("62")) {
-      throw new ConvexError("Nomor WhatsApp tidak valid. Contoh: 081234567890");
+    if (!isWhatsAppNumber(phone)) {
+      throw new ConvexError(
+        "Nomor WhatsApp seluler tidak valid. Contoh: 081234567890",
+      );
+    }
+
+    // Pembatas laju SETELAH validasi dasar — pengiriman data salah tidak
+    // membakar kuota; percobaan spam yang valid tetap terhitung.
+    await enforceRateLimit(ctx, `register:phone:${phone}`, LIMITS.registerPerPhone);
+    await enforceRateLimit(ctx, "register:global", LIMITS.registerGlobal);
+
+    if (args.minPrice !== undefined) {
+      if (!Number.isFinite(args.minPrice) || args.minPrice < 0) {
+        throw new ConvexError("Harga mulai dari tidak boleh negatif.");
+      }
+      if (args.minPrice > 1_000_000_000_000) {
+        throw new ConvexError("Harga mulai dari tidak wajar.");
+      }
+    }
+
+    if (args.workingHours !== undefined && args.workingHours.trim().length > 100) {
+      throw new ConvexError("Jam kerja maksimal 100 karakter.");
     }
 
     const category = await ctx.db
@@ -1266,6 +1328,31 @@ export const registerVendor = mutation({
       .unique();
     if (!landmark) throw new ConvexError("Patokan lokasi wajib dipilih.");
 
+    // Geofence (HIGH-2 audit): GPS mentah dari perangkat bisa salah/kordinat
+    // dipalsukan. Terima bila masih wajar dari patokan terpilih ATAU dari
+    // pusat Sumenep — selain itu tolak agar peta & urutan jarak tidak rusak.
+    const hasGps =
+      typeof args.lat === "number" && typeof args.lng === "number";
+    if (hasGps) {
+      const fromLandmark = haversineMeters(
+        landmark.lat,
+        landmark.lng,
+        args.lat as number,
+        args.lng as number,
+      );
+      const fromCenter = haversineMeters(
+        SUMENEP_CENTER.lat,
+        SUMENEP_CENTER.lng,
+        args.lat as number,
+        args.lng as number,
+      );
+      if (fromLandmark > MAX_GPS_DISTANCE_M && fromCenter > MAX_GPS_DISTANCE_M) {
+        throw new ConvexError(
+          "Lokasi terlalu jauh dari Sumenep. Pilih patokan lokasi yang benar atau biarkan koordinat otomatis.",
+        );
+      }
+    }
+
     // Slug unik otomatis dari nama usaha. Bila bentrok, tambahkan stempel
     // waktu + acak agar kolom slug (unik & wajib) tidak pernah bentrok.
     let slug = slugify(name) || "usaha";
@@ -1279,13 +1366,14 @@ export const registerVendor = mutation({
         .slice(2, 4)}`;
     }
 
-    // Galeri: maksimal 3 foto @1MB (dibatasi di klien, dijaga juga di sini).
+    // Galeri: maksimal 3 foto @1 MB. Validasi ukuran & tipe konten dilakukan
+    // SERVER-side lewat metadata `_storage` — bukan hanya kenyamanan klien
+    // (CRIT-1 audit: sebelumnya server hanya menghitung jumlah berkas).
     const imageIds = args.imageStorageIds ?? [];
-    if (imageIds.length > 3) {
-      throw new ConvexError("Maksimal 3 foto.");
-    }
     const legacyIds = args.imageStorageId ? [args.imageStorageId] : [];
-    const allImageIds = [...legacyIds, ...imageIds].slice(0, 3);
+    const allImageIds = [...legacyIds, ...imageIds];
+    await assertValidImageStorageIds(ctx, allImageIds);
+    const keptImageIds = allImageIds.slice(0, MAX_PHOTOS);
 
     const vendorId = await ctx.db.insert("vendors", {
       categoryId: category._id,
@@ -1293,17 +1381,19 @@ export const registerVendor = mutation({
       name,
       slug,
       phoneNumber: phone,
-      addressText: args.addressText.trim(),
+      addressText,
       // GPS mentah bila valid; selain itu duplikasi otomatis dari patokan.
-      lat: typeof args.lat === "number" && typeof args.lng === "number" ? args.lat : landmark.lat,
-      lng: typeof args.lat === "number" && typeof args.lng === "number" ? args.lng : landmark.lng,
+      lat: hasGps ? (args.lat as number) : landmark.lat,
+      lng: hasGps ? (args.lng as number) : landmark.lng,
       minPrice: args.minPrice,
       workingHours: args.workingHours?.trim() || undefined,
-      imageId: allImageIds[0],
-      imageIds: allImageIds.length > 0 ? allImageIds : undefined,
+      imageId: keptImageIds[0],
+      imageIds: keptImageIds.length > 0 ? keptImageIds : undefined,
       whatsappClicks: 0,
       recommendCount: 0,
       isVerified: false,
+      // verificationStatus kini HANYA milik admin; mitra baru dianggap
+      // "pending" secara implisit (lihat publicVerificationStatus).
       verificationStatus: "pending" as const,
       isActive: true,
     });
@@ -1312,31 +1402,45 @@ export const registerVendor = mutation({
   },
 });
 
+
 /**
- * Mitra menandai konfirmasi verifikasi dari sisi klien (misalnya setelah
- * menekan "Konfirmasi via WhatsApp" di layar sukses /daftar atau "Klaim Kartu
- * Saya" di /v/[slug]). Status berubah "pending" -> "confirmed" sehingga UI
- * menampilkan "⏳ Menunggu Konfirmasi". Admin kemudian memeriksa pesan
- * WhatsApp yang masuk lalu menyetujui lewat mutation internal.
+ * Mitra/warga meminta verifikasi (dipakai tombol "Konfirmasi via WhatsApp"
+ * di layar sukses /daftar dan "Klaim Kartu Saya" di /v/[slug]).
+ *
+ * HIGH-1 audit: versi lama (`markVerificationConfirmed`) mengubah
+ * `verificationStatus` menjadi "confirmed" — mutation publik yang menulis
+ * field yang juga menentukan tampilan kartu publik. Akibatnya siapa pun bisa
+ * mengubah tampilan kartu milik orang lain.
+ *
+ * Sekarang permintaan dicatat di `claimRequestedAt` (dengan pembatas laju per
+ * vendor), sedangkan `verificationStatus` tetap hanya milik admin. Antrean
+ * "Perlu Disetujui" di dashboard admin dihitung dari kedua sumber tersebut.
  */
-export const markVerificationConfirmed = mutation({
+export const requestVerification = mutation({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
     const vendor = await ctx.db
       .query("vendors")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
-    if (!vendor) throw new Error("Mitra tidak ditemukan.");
+    if (!vendor) throw new ConvexError("Mitra tidak ditemukan.");
 
     // Sudah disetujui admin — tidak ada yang perlu diubah.
     if (vendor.isVerified === true) {
       return { verificationStatus: "verified" as const };
     }
 
-    await ctx.db.patch(vendor._id, { verificationStatus: "confirmed" });
-    return { verificationStatus: "confirmed" as const };
+    await enforceRateLimit(
+      ctx,
+      `claim:${vendor._id}`,
+      LIMITS.claimRequestPerVendor,
+    );
+    await ctx.db.patch(vendor._id, { claimRequestedAt: Date.now() });
+
+    return { verificationStatus: "pending" as const };
   },
 });
+
 
 /**
  * [Admin] Menyetujui verifikasi mitra setelah memeriksa pesan WhatsApp.
@@ -1378,13 +1482,24 @@ export const approveVerification = internalMutation({
 
 /**
  * Rekomendasi warga — satu ketukan "jempol" per perangkat (dijaga
- * localStorage di klien, tanpa akun). Kegagalan ditelan diam-diam.
+ * localStorage di klien, tanpa akun). Kegagalan jaringan ditelan diam-diam.
+ *
+ * HIGH-1 audit: localStorage hanya anti-spam di klien; API-nya harus juga
+ * dilindungi, sebab sebelumnya dua panggilan anonim langsung menaikkan
+ * counter dari 0 ke 2. Pembatas laju per-vendor membatasi laju inflasi.
  */
 export const recommendVendor = mutation({
   args: { vendorId: v.id("vendors") },
   handler: async (ctx, args) => {
     const vendor = await ctx.db.get(args.vendorId);
     if (!vendor) return;
+
+    await enforceRateLimit(
+      ctx,
+      `recommend:${args.vendorId}`,
+      LIMITS.recommendPerVendor,
+    );
+
     await ctx.db.patch(args.vendorId, {
       recommendCount: (vendor.recommendCount ?? 0) + 1,
     });
@@ -1393,15 +1508,25 @@ export const recommendVendor = mutation({
 
 /**
  * Pelacak klik WhatsApp — dipanggil non-blocking setiap tombol hijau ditekan.
- * Dipakai untuk ringkasan engagement bulanan mitra.
+ * Dipakai untuk ringkasan engagement bulanan mitra DAN sebagai salah satu
+ * faktor urutan katalog (browse). Karena memengaruhi peringkat, lajunya
+ * harus dibatasi agar tidak bisa dipompa sendiri oleh mitra (HIGH-1 audit).
  */
 export const incrementWhatsAppClick = mutation({
   args: { vendorId: v.id("vendors") },
   handler: async (ctx, args) => {
     const vendor = await ctx.db.get(args.vendorId);
     if (!vendor) return;
+
+    await enforceRateLimit(
+      ctx,
+      `wa-click:${args.vendorId}`,
+      LIMITS.whatsappClickPerVendor,
+    );
+
     await ctx.db.patch(args.vendorId, {
       whatsappClicks: (vendor.whatsappClicks ?? 0) + 1,
     });
   },
 });
+

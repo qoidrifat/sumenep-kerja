@@ -22,42 +22,37 @@ export default defineConfig({
     // Optimize chunk splitting
     rollupOptions: {
       output: {
-        // Manual chunk splitting for better caching and lazy loading
-        manualChunks: {
-          // Vendor chunks for large libraries
-          'react-vendor': ['react', 'react-dom', 'react-router'],
-          'convex-vendor': ['convex'],
-          // Large UI library chunks
-          'radix-ui': [
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-avatar',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-collapsible',
-            '@radix-ui/react-context-menu',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-hover-card',
-            '@radix-ui/react-label',
-            '@radix-ui/react-menubar',
-            '@radix-ui/react-navigation-menu',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-progress',
-            '@radix-ui/react-radio-group',
-            '@radix-ui/react-scroll-area',
-            '@radix-ui/react-select',
-            '@radix-ui/react-separator',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toggle',
-            '@radix-ui/react-toggle-group',
-            '@radix-ui/react-tooltip',
-          ],
-          // Heavy optional libraries - separate chunks for better lazy loading
-          'framer-motion': ['framer-motion'],
-          'charts': ['recharts'],
-          'forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+        // BUG-4 audit: `manualChunks` berbentuk objek tidak efektif di sini —
+        // entri 'convex-vendor': ['convex'] tidak pernah cocok karena modul yang
+        // diimpor adalah subpath (convex/react, convex/browser), sehingga chunk
+        // jadi kosong (1 byte) dan react+convex+app menumpuk di index (433 kB).
+        // Bentuk FUNGSI memetakan berdasarkan path modul di node_modules.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+
+          // React + router: berubah paling jarang → chunk cache jangka panjang.
+          if (
+            id.includes("node_modules/react/") ||
+            id.includes("node_modules/react-dom/") ||
+            id.includes("node_modules/scheduler/") ||
+            id.includes("node_modules/react-router")
+          ) {
+            return "react-vendor";
+          }
+          // Convex client + convex auth (semua subpath convex/*).
+          if (
+            id.includes("node_modules/convex/") ||
+            id.includes("node_modules/@convex-dev/")
+          ) {
+            return "convex-vendor";
+          }
+          // Animasi.
+          if (id.includes("node_modules/framer-motion")) {
+            return "framer-motion";
+          }
+          // Sisa vendor dibiarkan mengikuti pemecahan otomatis Rollup agar
+          // tidak terbentuk chunk kosong / chunk raksasa buatan.
+          return undefined;
         },
         // Optimize chunk size
         chunkFileNames: 'assets/[name]-[hash].js',
@@ -89,8 +84,10 @@ export default defineConfig({
   },
   // Performance hints
   server: {
-    // Bind to all interfaces so WebContainer's server-ready event fires.
-    host: true,
+    // LOW-2 audit: bind ke semua interface HANYA di lingkungan WebContainer
+    // (VLY_ENV). Untuk dev lokal, batasi ke localhost agar dev server tidak
+    // terbuka ke seluruh jaringan LAN.
+    host: process.env.VLY_ENV ? true : "localhost",
     port: 5173,
     // Keep HMR on, but disable full-screen error overlay
     hmr: {

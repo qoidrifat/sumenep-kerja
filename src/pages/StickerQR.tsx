@@ -61,11 +61,18 @@ export default function StickerQR() {
 
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>(preselect ? [preselect] : []);
-  const [origin, setOrigin] = useState("https://sumenepkerja.com");
+  // BUG-2 audit: origin diinisialisasi lazy — sebelumnya default
+  // "https://sumenepkerja.com" lalu diperbarui via effect, sehingga QR sticker
+  // berisiko meng-encode URL domain yang salah bila tercetak sebelum effect
+  // selesai (media cetak = kesalahan permanen di fisik).
+  const [origin] = useState(() =>
+    typeof window === "undefined"
+      ? "https://sumenepkerja.com"
+      : window.location.origin,
+  );
 
   useEffect(() => {
     document.title = "QR Sticker Mitra — SumenepKerja";
-    setOrigin(window.location.origin);
   }, []);
 
   const filtered = useMemo(() => {

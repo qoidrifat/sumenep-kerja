@@ -43,6 +43,7 @@ interface AdminVendorRow {
   reviewCount: number | null;
   isVerified: boolean;
   verificationStatus: "pending" | "confirmed" | null;
+  claimRequestedAt: number | null;
   whatsappClicks: number;
   isActive: boolean;
   hasImage: boolean;
@@ -96,11 +97,11 @@ function StatusChip({ vendor }: { vendor: AdminVendorRow }) {
 /** Form inline edit satu baris mitra. */
 function EditForm({
   vendor,
-  passcode,
+  sessionToken,
   onDone,
 }: {
   vendor: AdminVendorRow;
-  passcode: string;
+  sessionToken: string;
   onDone: () => void;
 }) {
   const updateVendor = useMutation(api.admin.updateVendor);
@@ -119,7 +120,7 @@ function EditForm({
     setError(null);
     try {
       await updateVendor({
-        passcode,
+        sessionToken,
         vendorId: vendor.id as never,
         name,
         phoneNumber: phone,
@@ -255,10 +256,10 @@ function EditForm({
 /** Satu baris mitra (kartu expandable) di dashboard. */
 function VendorRow({
   vendor,
-  passcode,
+  sessionToken,
 }: {
   vendor: AdminVendorRow;
-  passcode: string;
+  sessionToken: string;
 }) {
   const approve = useMutation(api.admin.approveVendor);
   const reject = useMutation(api.admin.rejectVerification);
@@ -360,7 +361,7 @@ function VendorRow({
           {editing ? (
             <EditForm
               vendor={vendor}
-              passcode={passcode}
+              sessionToken={sessionToken}
               onDone={() => setEditing(false)}
             />
           ) : (
@@ -375,7 +376,7 @@ function VendorRow({
                       type="button"
                       onClick={() =>
                         run("delete", () =>
-                          remove({ passcode, vendorId: vendor.id as never }),
+                          remove({ sessionToken, vendorId: vendor.id as never }),
                         )
                       }
                       disabled={busyAction !== null}
@@ -404,7 +405,7 @@ function VendorRow({
                       type="button"
                       onClick={() =>
                         run("approve", () =>
-                          approve({ passcode, vendorId: vendor.id as never }),
+                          approve({ sessionToken, vendorId: vendor.id as never }),
                         )
                       }
                       disabled={busyAction !== null}
@@ -423,7 +424,7 @@ function VendorRow({
                       type="button"
                       onClick={() =>
                         run("reject", () =>
-                          reject({ passcode, vendorId: vendor.id as never }),
+                          reject({ sessionToken, vendorId: vendor.id as never }),
                         )
                       }
                       disabled={busyAction !== null}
@@ -453,7 +454,7 @@ function VendorRow({
                     onClick={() =>
                       run("toggle", () =>
                         setActive({
-                          passcode,
+                          sessionToken,
                           vendorId: vendor.id as never,
                           isActive: !vendor.isActive,
                         }),
@@ -503,19 +504,31 @@ function VendorRow({
 
 export default function Admin() {
   const [passcodeInput, setPasscodeInput] = useState("");
-  const [passcode, setPasscode] = useState<string | null>(null);
+  // Token sesi dari admin.loginAdmin — passphrase TIDAK disimpan di klien dan
+  // TIDAK dikirim ulang pada setiap panggilan (CRIT-3 audit).
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [sessionExpiresAt, setSessionExpiresAt] = useState<number | null>(null);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
   const [filter, setFilter] = useState<"all" | "confirmed" | "pending">("all");
   const [search, setSearch] = useState("");
 
-  const verifyPasscode = useMutation(api.admin.verifyPasscode);
+  const loginAdmin = useMutation(api.admin.loginAdmin);
+  const logoutAdmin = useMutation(api.admin.logoutAdmin);
 
   const data = useQuery(
     api.admin.getDashboardData,
-    passcode ? { passcode } : "skip",
+    sessionToken ? { sessionToken } : "skip",
   );
+
+  // Sesi kedaluwarsa → kembali ke layar login otomatis. `now` dihitung via
+  // useState lazy (pola React yang benar untuk nilai waktu) — bukan Date.now()
+  // langsung di body render, yang melanggar aturan purity react-hooks.
+  const [now] = useState(() => Date.now());
+  const sessionValid =
+    sessionToken !== null &&
+    (sessionExpiresAt === null || sessionExpiresAt > now);
 
   // Derivasi status konsisten dengan backend: vendor lama tanpa field
   // verificationStatus tetap terhitung "Belum Klaim".
@@ -566,8 +579,12 @@ export default function Admin() {
     setLoginBusy(true);
     setLoginError(null);
     try {
-      await verifyPasscode({ passcode: passcodeInput });
-      setPasscode(passcodeInput);
+      // Passphrase dikirim sekali di sini; responsnya berisi token sesi
+      // 256-bit. Passphrase tidak pernah disimpan di klien.
+      const result = await loginAdmin({ passcode: passcodeInput });
+      setSessionToken(result.token);
+      setSessionExpiresAt(result.expiresAt);
+      setPasscodeInput("");
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : "Login gagal.");
     } finally {
@@ -575,11 +592,20 @@ export default function Admin() {
     }
   };
 
+  const handleLogout = () => {
+    // Cabut sesi di server, lalu buang token dari memori.
+    if (sessionToken) {
+      void logoutAdmin({ sessionToken }).catch(() => {});
+    }
+    setSessionToken(null);
+    setSessionExpiresAt(null);
+  };
+
   const inputCls =
     "adm-input min-h-[48px] w-full px-4 py-3 text-base shadow-none placeholder:text-gray-500 focus:outline-none";
 
   // ---------------- Login ----------------
-  if (!passcode) {
+  if (!sessionValid) {
     return (
       <div className="admin-workspace min-h-app bg-[#faf7ee]">
         <div className="mx-auto flex min-h-app w-full max-w-md flex-col justify-center px-4 py-10">
@@ -637,8 +663,9 @@ export default function Admin() {
               </button>
             </form>
             <p className="mt-4 text-center text-sm font-medium text-[#525252]">
-              Passphrase disimpan di server (env var Convex
-              ADMIN_PASSCODE), tidak di kode.
+              Passphrase disimpan di server (env var Convex ADMIN_PASSCODE_HASH)
+              dan ditukar dengan token sesi 256-bit saat masuk — passphrase tidak
+              pernah dikirim ulang pada setiap panggilan.
             </p>
           </div>
         </div>
@@ -667,7 +694,7 @@ export default function Admin() {
             </div>
             <button
               type="button"
-              onClick={() => setPasscode(null)}
+              onClick={handleLogout}
               className="adm-btn adm-btn-ghost flex min-h-[48px] items-center gap-1.5 px-3 py-2 text-sm font-extrabold"
             >
               <LogOut className="size-4" aria-hidden="true" />
@@ -784,7 +811,7 @@ export default function Admin() {
                 <VendorRow
                   key={vendor.id}
                   vendor={vendor}
-                  passcode={passcode}
+                  sessionToken={sessionToken}
                 />
               ))
             )}

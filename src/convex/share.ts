@@ -59,8 +59,46 @@ function sharePage(args: {
 </html>`;
   return new Response(html, {
     status: 200,
-    headers: { "Content-Type": "text/html; charset=utf-8" },
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      // Header dasar untuk halaman share (LOW-1 audit). Halaman ini tak
+      // mengeksekusi konten dari pihak lain, jadi CSP ketat bisa dipakai.
+      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; img-src * data:; form-action 'none'; base-uri 'none'",
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "Referrer-Policy": "no-referrer",
+    },
   });
+}
+
+/**
+ * Origin frontend untuk redirect kartu.
+ *
+ * Nilai berasal dari env deployment (`SITE_URL`), tapi tetap divalidasi:
+ * - wajib http(s) absolut — menolak protokol seperti `javascript:`;
+ * - boleh localhost (dev) atau origin produksi yang dikenal.
+ * Setel via: `bunx convex env set SITE_URL https://sumenepkerja.com`
+ */
+function resolveSiteUrl(): string {
+  const raw = (process.env.SITE_URL ?? FALLBACK_SITE_URL).replace(/\/$/, "");
+  try {
+    const parsed = new URL(raw);
+    const isHttp = parsed.protocol === "https:" || parsed.protocol === "http:";
+    const isLocal =
+      parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+    const isProduction = parsed.hostname === "sumenepkerja.com";
+    if (!isHttp || (!isLocal && !isProduction)) {
+      console.error(
+        `[share] SITE_URL tidak valid (${parsed.protocol}//${parsed.hostname}). ` +
+          "Pakai fallback produksi.",
+      );
+      return FALLBACK_SITE_URL;
+    }
+    return raw;
+  } catch {
+    console.error("[share] SITE_URL bukan URL absolut yang valid. Pakai fallback.");
+    return FALLBACK_SITE_URL;
+  }
 }
 
 export const shareCard = httpAction(async (ctx, req) => {
@@ -68,10 +106,7 @@ export const shareCard = httpAction(async (ctx, req) => {
   const slug = decodeURIComponent(
     reqUrl.pathname.replace(/^\/s\//, "").split("/")[0] ?? "",
   ).trim();
-  const siteUrl = (process.env.SITE_URL ?? FALLBACK_SITE_URL).replace(
-    /\/$/,
-    "",
-  );
+  const siteUrl = resolveSiteUrl();
 
   if (!slug) {
     return new Response(null, { status: 302, headers: { Location: siteUrl } });

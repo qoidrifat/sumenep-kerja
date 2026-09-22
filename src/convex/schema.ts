@@ -32,6 +32,28 @@ const schema = defineSchema(
       role: v.optional(roleValidator), // role of the user. do not remove
     }).index("email", ["email"]), // index for the email. do not remove or modify
 
+    // ===== Keamanan: sesi dashboard admin & pembatas laju =====
+    //
+    // Passphrase admin TIDAK pernah dikirim ulang pada setiap panggilan dan
+    // TIDAK pernah disimpan mentah. Login menukar passphrase (di-hash,
+    // dibandingkan constant-time) dengan token acak 256-bit; yang disimpan di
+    // sini hanya SHA-256 dari token tersebut.
+    adminSessions: defineTable({
+      tokenHash: v.string(),
+      createdAt: v.number(),
+      expiresAt: v.number(),
+    })
+      .index("by_token_hash", ["tokenHash"])
+      .index("by_expires_at", ["expiresAt"]),
+
+    // Penghitung jendela tetap (fixed window) per kunci. Dibersihkan berkala
+    // oleh cron di convex/crons.ts.
+    rateLimits: defineTable({
+      key: v.string(),
+      windowStart: v.number(),
+      count: v.number(),
+    }).index("by_key", ["key"]),
+
     // ===== SumenepKerja directory tables =====
 
     // Kategori layanan (Servis & Teknik, Hajatan & Acara, ...)
@@ -75,9 +97,16 @@ const schema = defineSchema(
       isVerified: v.optional(v.boolean()),
       // Alur klaim mitra: "pending" = terdaftar/belum klaim, "confirmed" =
       // mitra sudah mengirim konfirmasi via WhatsApp, menunggu persetujuan admin.
+      //
+      // PENTING: field ini HANYA boleh ditulis oleh mutation admin. Sinyal
+      // permintaan dari mitra/warga disimpan terpisah di `claimRequestedAt`
+      // supaya pihak luar tidak bisa mengubah tampilan kartu publik.
       verificationStatus: v.optional(
         v.union(v.literal("pending"), v.literal("confirmed")),
       ),
+      // Waktu (epoch ms) saat seseorang menekan "Konfirmasi via WhatsApp" /
+      // "Klaim Kartu". Rate-limited; hanya memengaruhi antrean dashboard admin.
+      claimRequestedAt: v.optional(v.number()),
       isActive: v.optional(v.boolean()),
     })
       .index("by_slug", ["slug"])
@@ -86,7 +115,10 @@ const schema = defineSchema(
       .index("by_landmark_id", ["landmarkId"]),
   },
   {
-    schemaValidation: false,
+    // Validasi skema aktif: dokumen yang tidak sesuai `defineSchema` ditolak
+    // oleh database, sehingga data rusak (mis. dari mutation tanpa validasi
+    // lengkap) tidak pernah masuk. Semua field opsional tetap `v.optional(...)`.
+    schemaValidation: true,
   },
 );
 

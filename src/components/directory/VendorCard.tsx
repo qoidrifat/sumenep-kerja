@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { BadgeCheck, Clock, MapPin, Star, ThumbsUp } from "lucide-react";
+import { createElement } from "react";
 import { getCategoryIcon, getCategoryTheme } from "@/lib/category-ui";
 import { formatRupiah } from "@/lib/format";
 import { isWhatsAppNumber } from "@/lib/whatsapp";
@@ -13,8 +14,17 @@ interface VendorCardProps {
 }
 
 export function VendorCard({ vendor, activeLandmarkName }: VendorCardProps) {
-  const CategoryIcon = getCategoryIcon(vendor.categoryIcon);
   const theme = getCategoryTheme(vendor.categorySlug);
+
+  // BUG-1 audit: ikon kategori tidak boleh di-bind ke variabel komponen
+  // berhuruf besar saat render (`const CategoryIcon = ...` →
+  // react-hooks/static-components + remount saat iconName berubah).
+  // Fungsi kecil yang mengembalikan ELEMEN (bukan komponen) menjawab keduanya.
+  const iconFor = (className: string) =>
+    createElement(getCategoryIcon(vendor.categoryIcon), {
+      className,
+      "aria-hidden": true,
+    });
 
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -35,7 +45,7 @@ export function VendorCard({ vendor, activeLandmarkName }: VendorCardProps) {
             <div
               className={`flex size-full items-center justify-center bg-gradient-to-br ${theme.gradient}`}
             >
-              <CategoryIcon className="size-7" aria-hidden="true" />
+              {iconFor("size-7")}
             </div>
           )}
         </Link>
@@ -59,7 +69,7 @@ export function VendorCard({ vendor, activeLandmarkName }: VendorCardProps) {
             <span
               className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-sm font-medium ${theme.chip}`}
             >
-              <CategoryIcon className="size-3.5" aria-hidden="true" />
+              {iconFor("size-3.5")}
               {vendor.categoryName}
             </span>
             {vendor.isVerified && (

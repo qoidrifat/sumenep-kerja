@@ -8,6 +8,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
 import { registerServiceWorker } from "@/lib/pwa";
+import { InstrumentationProvider } from "@/instrumentation";
 
 registerServiceWorker();
 
@@ -88,19 +89,51 @@ class RootErrorBoundary extends React.Component<
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
+// ---------------------------------------------------------------------------
+// MED-6 audit: komunikasi postMessage dengan halaman host dibatasi origin.
+//
+// Sebelumnya: (a) jejak navigasi dikirim ke parent dengan target "*" — situs
+// mana pun yang meng-embed aplikasi ini menerima riwayat navigasi pengguna;
+// (b) pesan "navigate" inbound diterima tanpa cek origin — situs mana pun
+// bisa mengendalikan tombol back/forward pengguna.
+// ---------------------------------------------------------------------------
+const ALLOWED_HOST_ORIGINS = new Set([
+  "https://freebuff.com",
+  "https://app.vly.sh",
+  "https://vly.sh",
+]);
 
+/** Origin parent bila aplikasi di-embed DAN parent ada di daftar izin. */
+function allowedParentOrigin(): string | null {
+  if (typeof window === "undefined" || window.parent === window) return null;
+  try {
+    const referrerOrigin = new URL(document.referrer).origin;
+    if (ALLOWED_HOST_ORIGINS.has(referrerOrigin)) return referrerOrigin;
+    // Embed same-origin (mis. wrapper preview lokal) tetap diizinkan.
+    if (referrerOrigin === window.location.origin) return referrerOrigin;
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 function RouteSyncer() {
   const location = useLocation();
   useEffect(() => {
+    const target = allowedParentOrigin();
+    if (!target) return;
     window.parent.postMessage(
       { type: "iframe-route-change", path: location.pathname },
-      "*",
+      target,
     );
   }, [location.pathname]);
 
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
+      // Hanya pesan dari parent ter-otorisasi yang diproses.
+      if (!ALLOWED_HOST_ORIGINS.has(event.origin) && event.origin !== window.location.origin) {
+        return;
+      }
       if (event.data?.type === "navigate") {
         if (event.data.direction === "back") window.history.back();
         if (event.data.direction === "forward") window.history.forward();
@@ -120,6 +153,11 @@ createRoot(document.getElementById("root")!).render(
       <ToolbarErrorBoundary>
         <VlyToolbar />
       </ToolbarErrorBoundary>
+      {/* BUG-8 audit: InstrumentationProvider sebelumnya dead code — pelaporan
+          error produksi tidak pernah aktif. Dipasang di sini di dalam
+          RootErrorBoundary (yang tetap menjadi benteng terakhir) sehingga
+          error render + global error/unhandledrejection dilaporkan ke Vly. */}
+      <InstrumentationProvider>
       <ConvexAuthProvider client={convex}>
         <BrowserRouter>
           <RouteSyncer />
@@ -141,6 +179,7 @@ createRoot(document.getElementById("root")!).render(
         </BrowserRouter>
         <Toaster />
       </ConvexAuthProvider>
+      </InstrumentationProvider>
     </RootErrorBoundary>
   </StrictMode>,
 );

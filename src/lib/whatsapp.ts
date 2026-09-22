@@ -1,13 +1,24 @@
 /**
  * Tipe kategori yang didukung untuk personalisasi pesan WhatsApp
+ *
+ * CATATAN (LOW-5 audit): builder tautan ke ADMIN menerima `adminNumber`
+ * EKSPLISIT sebagai argumen — modul ini juga diimpor backend Convex
+ * (vendors.ts, admin.ts), sehingga tidak boleh membaca `import.meta`.
+ * Pemanggil klien mengambil nilainya dari `lib/env.ts` (VITE_ADMIN_WHATSAPP_NUMBER).
  */
-import { ADMIN_WHATSAPP_NUMBER } from "./config";
 
+// BUG-6 audit: tipe ini disinkronkan dengan SEED_CATEGORIES (vendors.ts).
+// Template untuk kategori yang tidak ada di seed (hajatan-acara, kuliner,
+// transportasi) dihapus — kode mati yang tampak seperti fitur.
 export type ServiceCategoryType =
   | "servis-teknik"
-  | "hajatan-acara"
-  | "kuliner"
-  | "transportasi"
+  | "bengkel-kendaraan"
+  | "toko-elektronik"
+  | "toko-hp"
+  | "listrik-pembangkit"
+  | "pendingin"
+  | "telekomunikasi-kurir"
+  | "rumah-tangga-kunci"
   | "umum";
 
 export interface WhatsAppLinkParams {
@@ -82,31 +93,6 @@ export function generateWhatsAppLink({
       break;
     }
 
-    case "hajatan-acara": {
-      const eventNeed = itemOrIssue || "layanan hajatan";
-      message =
-        `Halo ${vendorName}, saya lihat profil usaha Anda di SumenepKerja.\n\n` +
-        `Mau menanyakan ketersediaan tanggal dan daftar harga (${eventNeed}) untuk acara di ${locationText}.\n\n` +
-        `Apakah masih ada slot kosong yang bisa dibooking? Terima kasih.`;
-      break;
-    }
-
-    case "kuliner": {
-      const menu = itemOrIssue ? `menu ${itemOrIssue}` : "makanan/minuman";
-      message =
-        `Halo ${vendorName}, saya mau pesan ${menu} lewat katalog SumenepKerja.\n\n` +
-        `Apakah hari ini masih ada porsi/stok tersedia? Terima kasih!`;
-      break;
-    }
-
-    case "transportasi": {
-      message =
-        `Halo Pak/Cak ${vendorName}, saya menemukan kontak Anda di SumenepKerja.\n\n` +
-        `Mau menanyakan ketersediaan jasa angkut/pikap untuk rute sekitar ${locationText}.\n\n` +
-        `Apakah unitnya sedang luang hari ini?`;
-      break;
-    }
-
     case "umum":
     default: {
       message =
@@ -125,6 +111,7 @@ export function generateWhatsAppLink({
  * sendiri, sehingga pengiriman itu sekaligus membuktikan kepemilikan nomor.
  */
 function generateAdminVerificationLink(params: {
+  adminNumber: string;
   cardUrl: string;
   vendorName: string;
   phoneNumber?: string | null;
@@ -140,7 +127,7 @@ function generateAdminVerificationLink(params: {
     ownerLine +
     `Terima kasih.`;
 
-  return `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${params.adminNumber}?text=${encodeURIComponent(message)}`;
 }
 
 /**
@@ -150,6 +137,7 @@ function generateAdminVerificationLink(params: {
  * tanpa bertanya ulang.
  */
 export function generateAdminErrorReportLink(params: {
+  adminNumber: string;
   errorMessage: string;
   pageUrl?: string | null;
   stage?: string;
@@ -176,7 +164,7 @@ export function generateAdminErrorReportLink(params: {
   }
   lines.push("", "Terima kasih.");
 
-  return `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
+  return `https://wa.me/${params.adminNumber}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 
 /**
@@ -212,6 +200,7 @@ export function generateShareLink(params: {
  * melanjutkan mengetik masalah yang ditemukan di bawahnya.
  */
 export function generateCorrectionReportLink(params: {
+  adminNumber: string;
   cardUrl: string;
   vendorName: string;
   vendorSlug: string;
@@ -226,7 +215,7 @@ export function generateCorrectionReportLink(params: {
     `(tulis di sini, contoh: nomor tidak aktif / alamat pindah / sudah tutup)\n\n` +
     `Terima kasih.`;
 
-  return `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${params.adminNumber}?text=${encodeURIComponent(message)}`;
 }
 
 /**
@@ -234,6 +223,7 @@ export function generateCorrectionReportLink(params: {
  * (misalnya dari data direktori) dan ingin mengambil alih kartunya.
  */
 export function generateClaimLink(params: {
+  adminNumber: string;
   cardUrl: string;
   vendorName: string;
   phoneNumber?: string | null;
@@ -249,6 +239,7 @@ export function generateClaimLink(params: {
  * lewat /daftar dan ingin mempercepat verifikasi badge ✓ Terverifikasi.
  */
 export function generateVerificationConfirmLink(params: {
+  adminNumber: string;
   cardUrl: string;
   vendorName: string;
   phoneNumber?: string | null;

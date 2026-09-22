@@ -68,21 +68,12 @@ export interface CategoryTheme {
 }
 
 const THEMES: Record<string, CategoryTheme> = {
+  // BUG-6 audit: tema untuk kategori yang tidak ada di SEED_CATEGORIES
+  // (hajatan-acara, kuliner, transportasi) dihapus. Kategori siap pakai bila
+  // nanti benar-benar ditambahkan ke seed.
   "servis-teknik": {
     gradient: "from-blue-500 to-blue-700",
     chip: "border-blue-100 bg-blue-50 text-blue-700",
-  },
-  "hajatan-acara": {
-    gradient: "from-violet-500 to-violet-700",
-    chip: "border-violet-100 bg-violet-50 text-violet-700",
-  },
-  kuliner: {
-    gradient: "from-orange-400 to-orange-600",
-    chip: "border-orange-100 bg-orange-50 text-orange-700",
-  },
-  transportasi: {
-    gradient: "from-teal-500 to-teal-700",
-    chip: "border-teal-100 bg-teal-50 text-teal-700",
   },
   "bengkel-kendaraan": {
     gradient: "from-red-500 to-red-700",

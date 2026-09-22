@@ -11,9 +11,13 @@
 import type * as admin from "../admin.js";
 import type * as auth from "../auth.js";
 import type * as auth_emailOtp from "../auth/emailOtp.js";
+import type * as crons from "../crons.js";
 import type * as directory from "../directory.js";
 import type * as files from "../files.js";
 import type * as http from "../http.js";
+import type * as lib_adminAuth from "../lib/adminAuth.js";
+import type * as lib_rateLimit from "../lib/rateLimit.js";
+import type * as maintenance from "../maintenance.js";
 import type * as share from "../share.js";
 import type * as users from "../users.js";
 import type * as vendors from "../vendors.js";
@@ -28,9 +32,13 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   auth: typeof auth;
   "auth/emailOtp": typeof auth_emailOtp;
+  crons: typeof crons;
   directory: typeof directory;
   files: typeof files;
   http: typeof http;
+  "lib/adminAuth": typeof lib_adminAuth;
+  "lib/rateLimit": typeof lib_rateLimit;
+  maintenance: typeof maintenance;
   share: typeof share;
   users: typeof users;
   vendors: typeof vendors;
