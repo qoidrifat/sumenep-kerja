@@ -6,12 +6,19 @@ import { ChevronRight } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { getCategoryIcon, getCategoryTheme } from "@/lib/category-ui";
+import { setSeoMeta } from "@/lib/seo";
 
 export default function Kategori() {
   const categories = useQuery(api.vendors.getCategoryCounts);
+  const districts = useQuery(api.vendors.getDistricts) ?? [];
 
   useEffect(() => {
-    document.title = "Katalog Usaha — SumenepKerja";
+    setSeoMeta({
+      title: "Katalog Usaha — SumenepKerja",
+      description:
+        "Semua kategori jasa & usaha lokal Sumenep: servis & teknik, bengkel, elektronik, HP, listrik, pendingin, dan lainnya.",
+      path: "/kategori",
+    });
   }, []);
 
   return (
@@ -42,7 +49,7 @@ export default function Kategori() {
             return (
               <Link
                 key={category.id}
-                to={`/?kategori=${category.slug}`}
+                to={`/kategori/${category.slug}`}
                 className="flex min-h-[48px] items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-300"
               >
                 <div
@@ -58,6 +65,24 @@ export default function Kategori() {
                     {category.count > 0
                       ? `${category.count} usaha & jasa`
                       : "Belum ada mitra"}
+                  </p>
+                  {/* Hyperlocal SEO: tautan mandiri per kecamatan. */}
+                  <p className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-gray-500">
+                    {districts.slice(0, 6).map((d) => (
+                      <Link
+                        key={d.id}
+                        to={`/kecamatan/${d.slug}`}
+                        className="hover:text-blue-700 hover:underline"
+                      >
+                        {d.name}
+                      </Link>
+                    ))}
+                    <Link
+                      to="/kecamatan"
+                      className="font-medium text-gray-600 hover:text-blue-700 hover:underline"
+                    >
+                      semua kecamatan ›
+                    </Link>
                   </p>
                 </div>
                 <ChevronRight

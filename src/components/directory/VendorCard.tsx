@@ -100,6 +100,9 @@ export function VendorCard({ vendor, activeLandmarkName }: VendorCardProps) {
           </div>
 
           <p className="mt-1.5 line-clamp-1 text-sm text-gray-600">
+            {/* Hyperlocal SEO: nama kecamatan tampil di kartu (teks yang
+                dirayapi Google) dan memperjelas wilayah mitra bagi warga. */}
+            {vendor.districtName ? `Kec. ${vendor.districtName} · ` : ""}
             {vendor.addressText}
           </p>
         </div>

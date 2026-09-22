@@ -75,11 +75,29 @@ const schema = defineSchema(
       lng: v.number(),
     }).index("by_slug", ["slug"]),
 
+    // Kecamatan se-Kabupaten Sumenep (hyperlocal SEO). Data resmi Kemendagri;
+    // koordinat = titik perkiraan pusat kecamatan untuk penempatan otomatis.
+    districts: defineTable({
+      name: v.string(),
+      slug: v.string(),
+      lat: v.number(),
+      lng: v.number(),
+      // Deskripsi asli 2-3 kalimat (ciri khas wilayah) — mencegah halaman
+      // kecamatan menjadi konten tipis di mata Google.
+      description: v.optional(v.string()),
+      sortOrder: v.optional(v.number()),
+    })
+      .index("by_slug", ["slug"])
+      .index("by_sort_order", ["sortOrder"]),
+
     // Mitra / vendor. Coordinates are ALWAYS copied from the chosen
     // landmark at registration so the vendor is instantly discoverable.
     vendors: defineTable({
       categoryId: v.id("categories"),
       landmarkId: v.optional(v.id("landmarks")),
+      // Hyperlocal SEO: kecamatan mitra, ditetapkan otomatis dari koordinat
+      // (kecamatan terdekat) saat registrasi & backfill seed.
+      districtId: v.optional(v.id("districts")),
       name: v.string(),
       slug: v.string(),
       phoneNumber: v.string(), // E.164 tanpa tanda + (misal: 628123456789)

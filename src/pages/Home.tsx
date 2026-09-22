@@ -11,6 +11,7 @@ import { VendorCard } from "@/components/directory/VendorCard";
 import { VendorListSkeleton } from "@/components/directory/VendorCardSkeleton";
 import { InstallBanner } from "@/components/directory/InstallBanner";
 import { JoinBanner } from "@/components/directory/JoinBanner";
+import { setSeoMeta } from "@/lib/seo";
 
 export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,7 +44,12 @@ export default function Home() {
   const activeLandmark = landmarks.find((l) => l.slug === activeLandmarkSlug);
 
   useEffect(() => {
-    document.title = "SumenepKerja — Jasa & Usaha Lokal Sumenep";
+    setSeoMeta({
+      title: "SumenepKerja — Jasa & Usaha Lokal Sumenep",
+      description:
+        "Direktori jasa & usaha lokal Sumenep. Temukan teknisi, bengkel, dan layanan rumah tangga terdekat, langsung chat WhatsApp.",
+      path: "/",
+    });
   }, []);
 
   const setParam = (key: "patokan" | "kategori", value: string | null) => {

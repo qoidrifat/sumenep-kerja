@@ -21,6 +21,8 @@ export interface VendorListItem {
   verificationStatus: VendorVerificationStatus;
   whatsappClicks: number;
   recommendCount: number;
+  /** Nama kecamatan (penempatan otomatis dari koordinat) — hyperlocal SEO. */
+  districtName: string | null;
   distanceMeters: number | null;
   distanceDisplay: string | null;
 }

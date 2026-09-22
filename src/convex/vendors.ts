@@ -141,6 +141,241 @@ const SEED_LANDMARKS = [
   },
 ];
 
+/**
+ * SEO hyperlocal: kecamatan resmi se-Kabupaten Sumenep (sumber: Kemendagri,
+ * Permendagri 137/2017). Slug = nama resmi, dinormalisasi (a-z0-9, tanda hubung).
+ * Koordinat = perkiraan pusat kecamatan (kantor camat) — dipakai untuk
+ * penempatan otomatis mitra ke kecamatan terdekat saat registrasi, dan untuk
+ * halaman landing `/kecamatan/<slug>` di sitemap.
+ */
+interface SeedDistrict {
+  name: string;
+  slug: string;
+  lat: number;
+  lng: number;
+  /** Deskripsi asli 2 kalimat: ciri khas wilayah + relevansi jasa lokal. */
+  description: string;
+}
+
+const SEED_DISTRICTS: SeedDistrict[] = [
+  {
+    name: "Kota Sumenep",
+    slug: "kota-sumenep",
+    lat: -7.0069,
+    lng: 113.8617,
+    description:
+      "Pusat pemerintahan, perdagangan, dan jasa Kabupaten Sumenep. Di sekitar Taman Adipura, Keraton Sumenep, dan Pasar Anom aktivitas usaha paling ramai dari pagi hingga malam.",
+  },
+  {
+    name: "Kalianget",
+    slug: "kalianget",
+    lat: -7.0245,
+    lng: 113.9038,
+    description:
+      "Pelabuhan utama Sumenep — pintu barang dan penumpang menuju Kepulauan Kangean. Kawasan pesisir yang ramai jasa angkut, kepelabuhanan, dan perdagangan.",
+  },
+  {
+    name: "Talango",
+    slug: "talango",
+    lat: -7.0301,
+    lng: 113.9091,
+    description:
+      "Kecamatan agraris di timur laut Madura dengan lahan pertanian dan ternak warga. Layanan jasa tumbuh mengikuti kebutuhan desa-desa di sekitar jalur Talango–Kalianget.",
+  },
+  {
+    name: "Gapura",
+    slug: "gapura",
+    lat: -6.9962,
+    lng: 113.8211,
+    description:
+      "Gerbang barat menuju Kota Sumenep yang dilewati jalur lintas utama. Jasa transportasi, bengkel, dan warung tepi jalan cukup ramai di sepanjang koridor ini.",
+  },
+  {
+    name: "Manding",
+    slug: "manding",
+    lat: -6.9726,
+    lng: 113.7923,
+    description:
+      "Daerah perbukitan yang dikenal dengan peternakan dan kebun warga. Teknisi dan jasa pertanian dibutuhkan warga di sekitar jalur Manding–Gapura.",
+  },
+  {
+    name: "Guluk-Guluk",
+    slug: "guluk-guluk",
+    lat: -7.0143,
+    lng: 113.7791,
+    description:
+      "Kawasan perbukitan dengan perkebunan kelapa dan cengkih milik warga. Jasa bengkel dan kebutuhan rumah tangga tersebar di desa-desa lereng.",
+  },
+  {
+    name: "Pragaan",
+    slug: "pragaan",
+    lat: -7.0543,
+    lng: 113.7443,
+    description:
+      "Kecamatan pesisir selatan yang hidup dari laut dan pertanian. Kebutuhan jasa nelayan, perbaikan perahu, dan rumah tangga ramai di sekitar pasar Pragaan.",
+  },
+  {
+    name: "Saronggi",
+    slug: "saronggi",
+    lat: -7.0930,
+    lng: 113.7510,
+    description:
+      "Tetangga selatan Kota Sumenep yang agraris dan aktif mengikuti denyut kota. Jasa servis rumah tangga banyak melayani kawasan pinggiran kota.",
+  },
+  {
+    name: "Bluto",
+    slug: "bluto",
+    lat: -7.1260,
+    lng: 113.7185,
+    description:
+      "Perbukitan barat daya dengan peternakan sapi madura. Jasa ternak, bengkel, dan kebutuhan harian tersedia di seputar pasar Bluto.",
+  },
+  {
+    name: "Rubaru",
+    slug: "rubaru",
+    lat: -7.1568,
+    lng: 113.6978,
+    description:
+      "Kecamatan barat yang agraris dengan lahan tadah hujan. Layanan yang tersedia lebih banyak menyentuh kebutuhan pertanian dan rumah tangga warga.",
+  },
+  {
+    name: "Ganding",
+    slug: "ganding",
+    lat: -7.0760,
+    lng: 113.8038,
+    description:
+      "Pesisir selatan dengan desa-desa nelayan dan tambak. Jasa perbaikan perahu, mesin, dan kebutuhan pesisir menjadi ciri khas wilayah ini.",
+  },
+  {
+    name: "Lenteng",
+    slug: "lenteng",
+    lat: -7.1938,
+    lng: 113.7900,
+    description:
+      "Persimpangan penting jalur barat dengan pasar Lenteng yang besar. Pusat jasa dan perdagangan bagi warga barat daya Sumenep.",
+  },
+  {
+    name: "Pasongsongan",
+    slug: "pasongsongan",
+    lat: -7.2388,
+    lng: 113.7314,
+    description:
+      "Pesisir barat daya yang hidup dari nelayan dan garam rakyat. Jasa kepelabuhanan kecil dan kebutuhan pesisir tumbuh sepanjang jalur pantai.",
+  },
+  {
+    name: "Arjasa",
+    slug: "arjasa",
+    lat: -6.9305,
+    lng: 113.7721,
+    description:
+      "Timur laut yang berbukit dan dikenal dengan ternak warga. Layanan jasa lebih banyak melayani jalur Arjasa–Batuputih.",
+  },
+  {
+    name: "Dasuk",
+    slug: "dasuk",
+    lat: -6.9576,
+    lng: 113.7317,
+    description:
+      "Rumah bagi Pantai Slopeng, salah satu pantai terkenal di Sumenep. Usaha wisata, kuliner, dan jasa perjalanan ramai di kawasan pesisir utara.",
+  },
+  {
+    name: "Batuputih",
+    slug: "batuputih",
+    lat: -6.9072,
+    lng: 113.7027,
+    description:
+      "Daerah hutan dan perbukitan di sisi barat kabupaten. Jasa pertanian, ternak, dan bengkel tersebar di sepanjang jalur barat.",
+  },
+  {
+    name: "Batang Batang",
+    slug: "batang-batang",
+    lat: -6.9395,
+    lng: 113.6847,
+    description:
+      "Dikenal dengan Pantai Lombang dan Sembilan, hamparan cemara paling populer di Sumenep. Jasa wisata, penginapan, dan kuliner pesisir berkembang pesat.",
+  },
+  {
+    name: "Batuan",
+    slug: "batuan",
+    lat: -6.8753,
+    lng: 113.7412,
+    description:
+      "Gerbang barat Kabupaten Sumenep di persimpangan menuju Pamekasan. Jasa transportasi, bengkel, dan kuliner tepi jalan cukup lengkap.",
+  },
+  {
+    name: "Dungkek",
+    slug: "dungkek",
+    lat: -6.9027,
+    lng: 113.6312,
+    description:
+      "Kecamatan barat yang agraris dengan kebun dan ternak milik warga. Kebutuhan jasa harian dipenuhi di pasar dan desa-desa utama.",
+  },
+  {
+    name: "Giligenting",
+    slug: "giligenting",
+    lat: -7.2069,
+    lng: 113.6476,
+    description:
+      "Wilayah paling barat daya yang berbatasan langsung dengan Pamekasan. Warga hidup dari laut — jasa perikanan dan perbengkelan pesisir tumbuh di sini.",
+  },
+  {
+    name: "Nonggunong",
+    slug: "nonggunong",
+    lat: -7.1593,
+    lng: 113.6136,
+    description:
+      "Pesisir barat daya dengan desa nelayan tradisional. Jasa perahu, mesin, dan kebutuhan laut menjadi layanan utama.",
+  },
+  {
+    name: "Ra'as",
+    slug: "raas",
+    lat: -7.1854,
+    lng: 113.5565,
+    description:
+      "Pulau Raas yang dikenal dengan ternak kambing raas unggulan. Transportasi laut dan kebutuhan pulau menopang ekonomi warga.",
+  },
+  {
+    name: "Ambunten",
+    slug: "ambunten",
+    lat: -7.0033,
+    lng: 113.6524,
+    description:
+      "Timur Sumenep yang agraris dan tenang. Layanan jasa tumbuh mengikuti pasar desa dan jalur lintas timur.",
+  },
+  {
+    name: "Gayam",
+    slug: "gayam",
+    lat: -7.0850,
+    lng: 113.8664,
+    description:
+      "Pesisir timur yang hidup dari tambak, garam, dan perikanan. Jasa pesisir dan kebutuhan rumah tangga tersedia di sekitar pasar Gayam.",
+  },
+  {
+    name: "Kangayan",
+    slug: "kangayan",
+    lat: -7.0324,
+    lng: 113.5100,
+    description:
+      "Kepulauan di timur Sumenep yang terhubung transportasi laut. Jasa perikanan dan kebutuhan pulau menjadi tumpuan warga.",
+  },
+  {
+    name: "Sapeken",
+    slug: "sapeken",
+    lat: -6.9710,
+    lng: 114.1200,
+    description:
+      "Gugusan Kepulauan Kangean — wilayah paling timur kabupaten. Jasa perikanan, wisata bahari, dan logistik laut sangat dibutuhkan di sini.",
+  },
+  {
+    name: "Masalembu",
+    slug: "masalembu",
+    lat: -6.9140,
+    lng: 113.9660,
+    description:
+      "Kepulauan kecil di utara Kangean yang hidup dari laut. Nelayan dan jasa logistik antarpulau menjadi layanan utama warga.",
+  },
+];
+
 // BUG-5 audit: kategori "servis-teknik" (sortOrder 1, paling menonjol di UI)
 // tidak boleh kosong — kesan pertama terburuk bagi pengguna baru. Tiga teknisi
 // pintar (kompor gas, mesin cuci) dari dataset digolongkan ke kategori ini.
@@ -987,6 +1222,27 @@ const SEED_VENDORS: SeedVendor[] = [
 // ---------------------------------------------------------------------------
 
 /**
+ * Kecamatan terdekat dari satu koordinat (haversine terhadap titik pusat
+ * kecamatan). Dipakai seed runner & registerVendor.
+ */
+function nearestDistrictId(
+  districts: Array<{ _id: Id<"districts">; lat: number; lng: number }>,
+  lat: number,
+  lng: number,
+): Id<"districts"> {
+  let best = districts[0]._id;
+  let bestM = Number.POSITIVE_INFINITY;
+  for (const d of districts) {
+    const m = haversineMeters(d.lat, d.lng, lat, lng);
+    if (m < bestM) {
+      best = d._id;
+      bestM = m;
+    }
+  }
+  return best;
+}
+
+/**
  * Isi seluruh dataset (kategori, patokan, mitra). Aman dipanggil berkali-kali:
  * baris yang slug-nya sudah ada dilewati, jadi tidak pernah duplikat.
  */
@@ -1016,12 +1272,54 @@ async function upsertSeedData(ctx: MutationCtx) {
     }
   }
 
+  // Hyperlocal SEO: seed 27 kecamatan se-Kabupaten Sumenep (idempoten per slug).
+  const districtIds = new Map<string, Id<"districts">>();
+  let districtOrder = 0;
+  for (const d of SEED_DISTRICTS) {
+    const existing = await ctx.db
+      .query("districts")
+      .withIndex("by_slug", (q) => q.eq("slug", d.slug))
+      .unique();
+    if (existing) {
+      // Backfill deskripsi asli untuk baris lama yang terlanjur tanpa deskripsi.
+      if (existing.description !== d.description) {
+        await ctx.db.patch(existing._id, { description: d.description });
+      }
+      districtIds.set(d.slug, existing._id);
+    } else {
+      districtIds.set(
+        d.slug,
+        await ctx.db.insert("districts", { ...d, sortOrder: districtOrder++ }),
+      );
+    }
+  }
+
+  // Penempatan otomatis: setiap mitra ke kecamatan terdekat dari koordinatnya
+  // (haversine terhadap titik pusat kecamatan). Berlaku juga untuk data lama —
+  // jalankan `backfillSeedData` untuk memperbarui yang sudah terlanjur ada.
+  const allDistricts = await ctx.db.query("districts").collect();
+  for (const v of await ctx.db.query("vendors").collect()) {
+    const districtId = nearestDistrictId(allDistricts, v.lat, v.lng);
+    if (v.districtId !== districtId) {
+      await ctx.db.patch(v._id, { districtId });
+    }
+  }
+
   for (const s of SEED_VENDORS) {
     const existing = await ctx.db
       .query("vendors")
       .withIndex("by_slug", (q) => q.eq("slug", s.slug))
       .unique();
-    if (existing) continue;
+    if (existing) {
+      // BUG-5 audit: perbaiki drift kategori pada data lama. Mitra dengan slug
+      // sama bisa terlanjur menempel di kategori lain (di-seed dari kode lama);
+      // seed adalah sumber kebenaran kategori. Landmark & counter tidak disentuh.
+      const correctCategoryId = categoryIds.get(s.categorySlug)!;
+      if (existing.categoryId !== correctCategoryId) {
+        await ctx.db.patch(existing._id, { categoryId: correctCategoryId });
+      }
+      continue;
+    }
     await ctx.db.insert("vendors", {
       categoryId: categoryIds.get(s.categorySlug)!,
       landmarkId: landmarkIds.get(s.landmarkSlug),
@@ -1045,7 +1343,21 @@ async function upsertSeedData(ctx: MutationCtx) {
   }
 }
 
-/** Penggantian data penuh: semua vendor & kategori lama dihapus, lalu diisi ulang. */
+/**
+ * BUG-5 audit: melengkapi data deployment dengan seed terbaru TANPA
+ * menghapus apa pun. Idempoten per-slug (slug yang sudah ada dilewati),
+ * jadi aman dipanggil kapan pun — mitra baru dari /daftar dan counter
+ * (whatsappClicks, recommendCount) tetap utuh. Perbedaan dengan
+ * `replaceAllSeedData` yang destruktif total.
+ */
+export const backfillSeedData = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    await upsertSeedData(ctx);
+    return { ok: true as const };
+  },
+});
+
 export const replaceAllSeedData = internalMutation({
   args: {},
   handler: async (ctx) => {
@@ -1097,7 +1409,7 @@ export const browse = query({
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 100, 100);
 
-    const [allVendors, allCategories, landmarks] = await Promise.all([
+    const [allVendors, allCategories, landmarks, allDistricts] = await Promise.all([
       ctx.db.query("vendors").collect(),
       ctx.db.query("categories").collect(),
       args.landmarkSlug
@@ -1106,9 +1418,11 @@ export const browse = query({
             .withIndex("by_slug", (q) => q.eq("slug", args.landmarkSlug!))
             .unique()
         : Promise.resolve(null),
+      ctx.db.query("districts").collect(),
     ]);
 
     const categoriesById = new Map(allCategories.map((c) => [c._id, c]));
+    const districtNameById = new Map(allDistricts.map((d) => [d._id, d.name]));
     const searchLower = args.search?.trim().toLowerCase();
 
     let items = allVendors
@@ -1165,6 +1479,7 @@ export const browse = query({
           verificationStatus: publicVerificationStatus(vendor),
           whatsappClicks: vendor.whatsappClicks ?? 0,
           recommendCount: vendor.recommendCount ?? 0,
+          districtName: vendor.districtId ? districtNameById.get(vendor.districtId) ?? null : null,
           distanceMeters,
           distanceDisplay: distanceMeters !== null ? formatDistance(distanceMeters) : null,
         };
@@ -1187,6 +1502,7 @@ export const getBySlug = query({
 
     const category = await ctx.db.get(vendor.categoryId);
     const landmark = vendor.landmarkId ? await ctx.db.get(vendor.landmarkId) : null;
+    const district = vendor.districtId ? await ctx.db.get(vendor.districtId) : null;
 
     return {
       id: vendor._id,
@@ -1207,6 +1523,7 @@ export const getBySlug = query({
       verificationStatus: publicVerificationStatus(vendor),
       whatsappClicks: vendor.whatsappClicks ?? 0,
       recommendCount: vendor.recommendCount ?? 0,
+      districtName: district?.name ?? null,
       distanceMeters: null,
       distanceDisplay: null,
       landmarkName: landmark?.name ?? null,
@@ -1240,6 +1557,98 @@ export const getCategoryCounts = query({
         iconName: c.iconName ?? null,
         count: counts.get(c.slug) ?? 0,
       }));
+  },
+});
+
+/** Hyperlocal SEO: daftar kecamatan + jumlah mitra aktif (untuk /kecamatan). */
+export const getDistricts = query({
+  args: {},
+  handler: async (ctx) => {
+    const [districts, vendors] = await Promise.all([
+      ctx.db.query("districts").collect(),
+      ctx.db.query("vendors").collect(),
+    ]);
+    const counts = new Map<string, number>();
+    for (const vendor of vendors) {
+      if (vendor.isActive === false || !vendor.districtId) continue;
+      const district = districts.find((d) => d._id === vendor.districtId);
+      if (district) counts.set(district.slug, (counts.get(district.slug) ?? 0) + 1);
+    }
+    return districts
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      .map((d) => ({
+        id: d._id,
+        name: d.name,
+        slug: d.slug,
+        description: d.description ?? null,
+        count: counts.get(d.slug) ?? 0,
+      }));
+  },
+});
+
+/** Hyperlocal SEO: mitra aktif dalam satu kecamatan, untuk /kecamatan/<slug>. */
+export const browseByDistrict = query({
+  args: { districtSlug: v.string() },
+  handler: async (ctx, args) => {
+    const district = await ctx.db
+      .query("districts")
+      .withIndex("by_slug", (q) => q.eq("slug", args.districtSlug))
+      .unique();
+    if (!district) return null;
+
+    const [vendors, categories] = await Promise.all([
+      ctx.db.query("vendors").collect(),
+      ctx.db.query("categories").collect(),
+    ]);
+    const categoriesById = new Map(categories.map((c) => [c._id, c]));
+
+    const items = vendors
+      .filter((v) => v.isActive !== false && v.districtId === district._id)
+      .sort((a, b) => {
+        const ca = a.whatsappClicks ?? 0;
+        const cb = b.whatsappClicks ?? 0;
+        if (ca !== cb) return cb - ca;
+        return b._creationTime - a._creationTime;
+      });
+
+    const results = await Promise.all(
+      items.map(async (vendor) => {
+        const category = categoriesById.get(vendor.categoryId);
+        return {
+          id: vendor._id,
+          name: vendor.name,
+          slug: vendor.slug,
+          phoneNumber: vendor.phoneNumber,
+          addressText: vendor.addressText,
+          categoryName: category?.name ?? "Layanan Umum",
+          categorySlug: category?.slug ?? "umum",
+          categoryIcon: category?.iconName ?? null,
+          minPrice: vendor.minPrice ?? null,
+          workingHours: vendor.workingHours ?? null,
+          rating: vendor.rating ?? null,
+          reviewCount: vendor.reviewCount ?? null,
+          imageUrl: vendor.imageId ? await ctx.storage.getUrl(vendor.imageId) : null,
+          imageUrls: await resolveGalleryUrls(ctx, vendor.imageId, vendor.imageIds),
+          isVerified: vendor.isVerified === true,
+          verificationStatus: publicVerificationStatus(vendor),
+          whatsappClicks: vendor.whatsappClicks ?? 0,
+          recommendCount: vendor.recommendCount ?? 0,
+          districtName: district.name,
+          distanceMeters: null,
+          distanceDisplay: null,
+        };
+      }),
+    );
+
+    return {
+      district: {
+        id: district._id,
+        name: district.name,
+        slug: district.slug,
+        description: district.description ?? null,
+      },
+      vendors: results,
+    };
   },
 });
 
@@ -1353,6 +1762,12 @@ export const registerVendor = mutation({
       }
     }
 
+    // Hyperlocal SEO: kecamatan otomatis dari koordinat final mitra.
+    const finalLat = hasGps ? (args.lat as number) : landmark.lat;
+    const finalLng = hasGps ? (args.lng as number) : landmark.lng;
+    const allDistricts = await ctx.db.query("districts").collect();
+    const districtId = nearestDistrictId(allDistricts, finalLat, finalLng);
+
     // Slug unik otomatis dari nama usaha. Bila bentrok, tambahkan stempel
     // waktu + acak agar kolom slug (unik & wajib) tidak pernah bentrok.
     let slug = slugify(name) || "usaha";
@@ -1378,13 +1793,14 @@ export const registerVendor = mutation({
     const vendorId = await ctx.db.insert("vendors", {
       categoryId: category._id,
       landmarkId: landmark._id,
+      districtId,
       name,
       slug,
       phoneNumber: phone,
       addressText,
       // GPS mentah bila valid; selain itu duplikasi otomatis dari patokan.
-      lat: hasGps ? (args.lat as number) : landmark.lat,
-      lng: hasGps ? (args.lng as number) : landmark.lng,
+      lat: finalLat,
+      lng: finalLng,
       minPrice: args.minPrice,
       workingHours: args.workingHours?.trim() || undefined,
       imageId: keptImageIds[0],

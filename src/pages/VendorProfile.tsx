@@ -33,6 +33,7 @@ import {
   sanitizePhoneNumber,
 } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
+import { SITE_ORIGIN, setJsonLd, setSeoMeta } from "@/lib/seo";
 import { VendorCardSkeleton } from "@/components/directory/VendorCardSkeleton";
 
 export default function VendorProfile() {
@@ -41,8 +42,66 @@ export default function VendorProfile() {
 
   useEffect(() => {
     if (vendor) {
-      document.title = `${vendor.name} — SumenepKerja`;
+      // Meta dinamis + canonical per kartu (Google & browser).
+      setSeoMeta({
+        title: `${vendor.name} — ${vendor.categoryName}${vendor.districtName ? ` Kecamatan ${vendor.districtName}` : ""} | SumenepKerja`,
+        description: [
+          `${vendor.categoryName} di ${vendor.addressText}`,
+          vendor.districtName ? `Kec. ${vendor.districtName}` : null,
+          vendor.landmarkName ? `dekat ${vendor.landmarkName}` : null,
+          vendor.minPrice && vendor.minPrice > 0
+            ? `mulai Rp${new Intl.NumberFormat("id-ID").format(vendor.minPrice)}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        path: `/v/${vendor.slug}`,
+      });
+
+      // Schema Markup LocalBusiness: kartu dikenali Google sebagai entitas
+      // bisnis lokal Sumenep — bisa muncul sendiri untuk pencarian nama usaha.
+      setJsonLd("vendor-local-business", {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        name: vendor.name,
+        description: vendor.addressText,
+        url: `${SITE_ORIGIN}/v/${vendor.slug}`,
+        telephone: `+${vendor.phoneNumber}`,
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: vendor.addressText,
+          addressLocality: "Sumenep",
+          addressRegion: "Jawa Timur",
+          addressCountry: "ID",
+        },
+        ...(vendor.districtName
+          ? {
+              // Kecamatan sebagai area terlayani — sinyal hyperlocal untuk Google.
+              areaServed: [{ "@type": "AdministrativeArea", name: `Kecamatan ${vendor.districtName}` }],
+            }
+          : {}),
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: vendor.lat,
+          longitude: vendor.lng,
+        },
+        ...(vendor.minPrice && vendor.minPrice > 0
+          ? { priceRange: `Rp${new Intl.NumberFormat("id-ID").format(vendor.minPrice)}+` }
+          : {}),
+        ...(vendor.workingHours ? { openingHours: vendor.workingHours } : {}),
+        ...(vendor.rating && vendor.reviewCount && vendor.reviewCount > 0
+          ? {
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: vendor.rating,
+                reviewCount: vendor.reviewCount,
+              },
+            }
+          : {}),
+        ...(vendor.imageUrls.length > 0 ? { image: vendor.imageUrls } : {}),
+      });
     }
+    return () => setJsonLd("vendor-local-business", null);
   }, [vendor]);
 
   const [activePhoto, setActivePhoto] = useState(0);

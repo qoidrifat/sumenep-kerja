@@ -18,6 +18,7 @@ import type * as http from "../http.js";
 import type * as lib_adminAuth from "../lib/adminAuth.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as maintenance from "../maintenance.js";
+import type * as seo from "../seo.js";
 import type * as share from "../share.js";
 import type * as users from "../users.js";
 import type * as vendors from "../vendors.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   "lib/adminAuth": typeof lib_adminAuth;
   "lib/rateLimit": typeof lib_rateLimit;
   maintenance: typeof maintenance;
+  seo: typeof seo;
   share: typeof share;
   users: typeof users;
   vendors: typeof vendors;

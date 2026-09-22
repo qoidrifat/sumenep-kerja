@@ -15,6 +15,9 @@ registerServiceWorker();
 // Lazy load route components for better code splitting
 const Home = lazy(() => import("./pages/Home.tsx"));
 const Kategori = lazy(() => import("./pages/Kategori.tsx"));
+const CategoryDetail = lazy(() => import("./pages/CategoryDetail.tsx"));
+const DistrictPage = lazy(() => import("./pages/DistrictPage.tsx"));
+const DistrictsIndex = lazy(() => import("./pages/DistrictsIndex.tsx"));
 const Daftar = lazy(() => import("./pages/Daftar.tsx"));
 const VendorProfile = lazy(() => import("./pages/VendorProfile.tsx"));
 const StickerQR = lazy(() => import("./pages/StickerQR.tsx"));
@@ -165,6 +168,9 @@ createRoot(document.getElementById("root")!).render(
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/kategori" element={<Kategori />} />
+              <Route path="/kategori/:slug" element={<CategoryDetail />} />
+              <Route path="/kecamatan" element={<DistrictsIndex />} />
+              <Route path="/kecamatan/:slug" element={<DistrictPage />} />
               <Route path="/daftar" element={<Daftar />} />
               <Route path="/v/:slug" element={<VendorProfile />} />
               <Route path="/qr" element={<StickerQR />} />
