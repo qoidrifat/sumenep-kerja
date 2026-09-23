@@ -131,3 +131,17 @@ Landing target for physical QR stickers (`/v/<slug>?ref=sticker`): fast standalo
 6. **Performance & CLS:** skeleton loaders matching exact card dimensions; lists render without layout shift.
 7. **Device Responsiveness:** follow section 📱 above — `min-h-dvh` (never `100vh`/`min-h-screen`), `viewport-fit=cover`, safe-area insets on fixed bars, `overflow-x-hidden` on the outer shell, fluid widths with `min-w-0`/`flex-wrap` for 320px screens, `max-w-md mx-auto` centering for unfolded foldables.
 8. **Slug Uniqueness:** never trust business names to be unique — timestamp-suffix fallback on collision.
+
+---
+
+## ⛔ 9ROUTER/INFRON ANTI-429 (CONDITIONAL — only when model id/provider contains `9router`, `infron`, or `oc/`)
+
+> If active model is NOT from 9router/infron, IGNORE this section entirely.
+
+1. **Concurrency 1 + delay:** 1 tool/call, jeda 1000–2000ms. Matikan parallel subagents/Task explosion. `maxSteps:15`.
+2. **Read minimal:** max 100 baris via offset/limit. Dilarang `**/*` recursive / full file >100 baris.
+3. **Bash disaring:** selalu `| head -n 20`, `| tail -n 20`, atau `| grep -i error`. Dilarang dump build log mentah.
+4. **Diff-only:** edit berupa git diff / blok fungsi saja. Dilarang print ulang full file.
+5. **Model hemat:** no thinking-high. `max_tokens:2000-4000`. Fallback ke model-free lain jika 429. Beda agent beda model string agar tidak antre 1 queue.
+6. **Backoff:** `maxRetries:3-5`, exponential 2s/4s/8s + jitter. Jika 429 2x beruntun: stop 5-10s, kecilkan payload 50%, jangan ulangi burst sama. Compact/clear tiap 8-10 turn.
+7. **Config aktif:** `opencode.jsonc` (opencode) + `pi.9router.json` (pi) + `omp.9router.json` (omp). Lihat file tersebut untuk throttle teknis.

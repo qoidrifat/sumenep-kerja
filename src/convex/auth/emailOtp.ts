@@ -2,11 +2,18 @@ import { Email } from "@convex-dev/auth/providers/Email";
 import { RandomReader, generateRandomString } from "@oslojs/crypto/random";
 
 /**
- * Endpoint pengiriman OTP.
+ * Endpoint pengiriman OTP (relay email milik Freebuff).
  *
- * API key TIDAK PERNAH di-hardcode: nilai lamanya sudah bocor ke git history
- * (lihat AUDIT-REPORT.md CRIT-2) dan harus dianggap kompromi permanen.
- * Setel key baru via: `bunx convex env set EMAIL_API_KEY <key-baru>`
+ * Klarifikasi resmi tim Freebuff (laporan Discord, Sep 2026): key
+ * `fb_email_*` BUKAN secret milik project ini, melainkan SHARED KEY milik
+ * Freebuff untuk relay sign-in email — bagian dari template standar yang
+ * dibawa semua aplikasi Freebuff. Keberadaannya di repository (termasuk git
+ * history, commit 75692b9) TIDAK membocorkan apa pun tentang project,
+ * deployment Convex, maupun user. Nothing to revoke, nothing to rotate;
+ * relay dilindungi abuse controls di sisi Freebuff.
+ *
+ * Key tetap dibaca dari env (`EMAIL_API_KEY`) dan tidak pernah dicatat ke
+ * log sebagai higiene standar — bukan karena key-nya sensitif.
  */
 const OTP_ENDPOINT = "https://auth.freebuff.app/send_otp";
 
