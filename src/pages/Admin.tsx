@@ -608,7 +608,7 @@ export default function Admin() {
   if (!sessionValid) {
     return (
       <div className="admin-workspace min-h-app bg-[#faf7ee]">
-        <div className="mx-auto flex min-h-app w-full max-w-md flex-col justify-center px-4 py-10">
+        <div className="mx-auto flex min-h-app w-full flex-col justify-center px-4 py-10 max-w-md md:max-w-md lg:max-w-lg">
           <div className="adm-panel p-6">
             <div className="flex items-center justify-center">
               <div className="adm-btn flex size-14 items-center justify-center bg-[#ff5a26]">
@@ -675,8 +675,8 @@ export default function Admin() {
 
   // ---------------- Dashboard ----------------
   return (
-    <div className="admin-workspace min-h-app bg-[#faf7ee]">
-      <div className="mx-auto min-h-app w-full max-w-md">
+<div className="admin-workspace min-h-app bg-[#faf7ee]">
+        <div className="mx-auto min-h-app w-full max-w-md md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
         <header className="sticky top-0 z-40 border-b-2 border-[#121212] bg-[#fdfbf7] pt-[env(safe-area-inset-top)]">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">

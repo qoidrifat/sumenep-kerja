@@ -37,7 +37,7 @@ export default function DistrictsIndex() {
 
       <section
         aria-label="Daftar kecamatan"
-        className="space-y-3 px-4 pt-3 pb-4"
+        className="px-4 pt-3 pb-4"
       >
         {districts === undefined ? (
           <div className="space-y-3">
@@ -49,7 +49,8 @@ export default function DistrictsIndex() {
             ))}
           </div>
         ) : (
-          districts.map((d) => (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {districts.map((d) => (
             <Link
               key={d.id}
               to={`/kecamatan/${d.slug}`}
@@ -71,7 +72,8 @@ export default function DistrictsIndex() {
                 aria-hidden="true"
               />
             </Link>
-          ))
+          ))}
+          </div>
         )}
       </section>
     </AppShell>

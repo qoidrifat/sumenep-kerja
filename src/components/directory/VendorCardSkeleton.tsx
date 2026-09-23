@@ -28,7 +28,7 @@ export function VendorCardSkeleton() {
 
 export function VendorListSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <div className="space-y-3">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: count }).map((_, i) => (
         <VendorCardSkeleton key={i} />
       ))}

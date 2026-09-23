@@ -79,7 +79,7 @@ export default function CategoryDetail() {
         </p>
       </section>
 
-      <section aria-label="Daftar mitra" className="space-y-3 px-4 pt-3 pb-4">
+      <section aria-label="Daftar mitra" className="px-4 pt-3 pb-4">
         {vendors === undefined ? (
           <VendorListSkeleton />
         ) : vendors.length === 0 ? (
@@ -96,13 +96,15 @@ export default function CategoryDetail() {
             </p>
           </div>
         ) : (
-          vendors.map((vendor) => (
-            <VendorCard
-              key={vendor.id}
-              vendor={vendor}
-              activeLandmarkName={null}
-            />
-          ))
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {vendors.map((vendor) => (
+              <VendorCard
+                key={vendor.id}
+                vendor={vendor}
+                activeLandmarkName={null}
+              />
+            ))}
+          </div>
         )}
       </section>
     </AppShell>

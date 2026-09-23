@@ -112,13 +112,15 @@ export default function DistrictPage() {
             </p>
           </div>
         ) : (
-          vendors.map((vendor) => (
-            <VendorCard
-              key={vendor.id}
-              vendor={vendor}
-              activeLandmarkName={null}
-            />
-          ))
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {vendors.map((vendor) => (
+              <VendorCard
+                key={vendor.id}
+                vendor={vendor}
+                activeLandmarkName={null}
+              />
+            ))}
+          </div>
         )}
       </section>
     </AppShell>

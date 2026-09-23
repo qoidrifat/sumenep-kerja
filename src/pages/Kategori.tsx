@@ -32,7 +32,7 @@ export default function Kategori() {
         </p>
       </section>
 
-      <section aria-label="Daftar kategori" className="space-y-3 px-4 pt-3 pb-4">
+      <section aria-label="Daftar kategori" className="px-4 pt-3 pb-4">
         {categories === undefined ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -43,15 +43,16 @@ export default function Kategori() {
             ))}
           </div>
         ) : (
-          categories.map((category) => {
-            const Icon = getCategoryIcon(category.iconName);
-            const theme = getCategoryTheme(category.slug);
-            return (
-              <Link
-                key={category.id}
-                to={`/kategori/${category.slug}`}
-                className="flex min-h-[48px] items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-300"
-              >
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {categories.map((category) => {
+              const Icon = getCategoryIcon(category.iconName);
+              const theme = getCategoryTheme(category.slug);
+              return (
+                <Link
+                  key={category.id}
+                  to={`/kategori/${category.slug}`}
+                  className="flex min-h-[48px] items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-300"
+                >
                 <div
                   className={`flex size-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-sm ${theme.gradient}`}
                 >
@@ -91,7 +92,8 @@ export default function Kategori() {
                 />
               </Link>
             );
-          })
+          })}
+          </div>
         )}
       </section>
     </AppShell>

@@ -452,7 +452,7 @@ export default function Daftar() {
 
   return (
     <AppShell>
-      <section className="px-4 pt-5 pb-2">
+      <section className="mx-auto w-full max-w-xl px-4 pt-5 pb-2">
         <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">
           Daftarkan Usaha Gratis
         </h1>
@@ -461,7 +461,7 @@ export default function Daftar() {
         </p>
       </section>
 
-      <form onSubmit={handleSubmit} className="space-y-5 px-4 pt-3 pb-8">
+      <form onSubmit={handleSubmit} className="mx-auto w-full max-w-xl space-y-5 px-4 pt-3 pb-8">
         {status.kind === "error" && (
           <div
             role="alert"

@@ -109,7 +109,7 @@ export default function Home() {
       {/* Filter patokan lokal */}
       <section
         aria-label="Filter patokan lokasi"
-        className="bg-white pt-3 pb-3 shadow-sm"
+        className="overflow-x-clip bg-white pt-3 pb-3 shadow-sm"
       >
         <div className="px-4 pb-2">
           <h2 className="text-sm font-semibold tracking-wide text-gray-900 uppercase">
@@ -172,9 +172,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Daftar mitra */}
-      <section aria-label="Daftar mitra" className="space-y-3 px-4 pt-4">
-        <div className="flex items-center justify-between gap-2">
+      {/* Daftar mitra — grid di tablet & desktop, single-column di HP. */}
+      <section aria-label="Daftar mitra" className="px-4 pt-4">
+        <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-base font-bold text-gray-900">
             {activeLandmark ? `Sekitar ${activeLandmark.name}` : "Katalog Usaha"}
           </h2>
@@ -196,13 +196,15 @@ export default function Home() {
             </p>
           </div>
         ) : (
-          vendors.map((vendor) => (
-            <VendorCard
-              key={vendor.id}
-              vendor={vendor}
-              activeLandmarkName={activeLandmark?.name ?? null}
-            />
-          ))
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {vendors.map((vendor) => (
+              <VendorCard
+                key={vendor.id}
+                vendor={vendor}
+                activeLandmarkName={activeLandmark?.name ?? null}
+              />
+            ))}
+          </div>
         )}
       </section>
 

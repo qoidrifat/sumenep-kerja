@@ -165,7 +165,7 @@ export default function VendorProfile() {
   if (vendor === undefined) {
     return (
       <div className="min-h-app bg-gray-200/70">
-        <div className="mx-auto min-h-app w-full max-w-md bg-gray-50 shadow-sm">
+        <div className="mx-auto min-h-app w-full bg-gray-50 shadow-sm max-w-md md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
           <AppHeader />
           <div className="p-4">
             <VendorCardSkeleton />
@@ -178,7 +178,7 @@ export default function VendorProfile() {
   if (vendor === null) {
     return (
       <div className="min-h-app bg-gray-200/70">
-        <div className="mx-auto min-h-app w-full max-w-md bg-gray-50 shadow-sm">
+        <div className="mx-auto min-h-app w-full bg-gray-50 shadow-sm max-w-md md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
           <AppHeader />
           <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
             <Tag className="size-12 text-gray-400" aria-hidden="true" />
@@ -203,7 +203,7 @@ export default function VendorProfile() {
 
   return (
     <div className="min-h-app bg-gray-200/70">
-      <div className="mx-auto flex min-h-app w-full max-w-md flex-col bg-gray-50 shadow-sm">
+      <div className="mx-auto flex min-h-app w-full flex-col bg-gray-50 shadow-sm max-w-md md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
         <AppHeader />
         <main className="flex-1">
           {/* Hero foto */}
